@@ -1,0 +1,134 @@
+import type { TicketmasterEvent } from "@/types/ticketmaster";
+
+interface EventCardProps {
+  event: TicketmasterEvent;
+}
+
+function selectEventImage(
+  event: TicketmasterEvent,
+): string | null {
+  const images = event.images ?? [];
+
+  const preferredImage =
+    images
+      .filter((image) => image.ratio === "16_9")
+      .sort((a, b) => b.width - a.width)[0] ??
+    images.sort((a, b) => b.width - a.width)[0];
+
+  return preferredImage?.url ?? null;
+}
+
+function formatEventDate(date: string): string {
+  return new Intl.DateTimeFormat("it-IT", {
+    weekday: "short",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${date}T12:00:00`));
+}
+
+function formatEventTime(time?: string): string | null {
+  if (!time) {
+    return null;
+  }
+
+  return time.slice(0, 5);
+}
+
+export default function EventCard({
+  event,
+}: EventCardProps) {
+  const venue = event._embedded?.venues?.[0];
+  const imageUrl = selectEventImage(event);
+  const eventTime = formatEventTime(
+    event.dates.start.localTime,
+  );
+
+  const genre =
+    event.classifications?.find(
+      (classification) => classification.primary,
+    )?.genre?.name ??
+    event.classifications?.[0]?.genre?.name;
+
+  return (
+    <article className="event-card">
+      <div className="event-card__image-wrapper">
+        {imageUrl ? (
+          <img
+            className="event-card__image"
+            src={imageUrl}
+            alt=""
+          />
+        ) : (
+          <div className="event-card__placeholder">
+            Nessuna immagine
+          </div>
+        )}
+
+        {genre && (
+          <span className="event-card__genre">
+            {genre}
+          </span>
+        )}
+      </div>
+
+      <div className="event-card__content">
+        <div className="event-card__metadata">
+          <span>
+            {formatEventDate(
+              event.dates.start.localDate,
+            )}
+          </span>
+
+          {eventTime && <span>Ore {eventTime}</span>}
+        </div>
+
+        <h2 className="event-card__title">
+          {event.name}
+        </h2>
+
+        <div className="event-card__venue">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+          >
+            <path
+              d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+
+            <circle
+              cx="12"
+              cy="10"
+              r="2.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+          </svg>
+
+          <span>
+            {venue?.name ?? "Luogo non disponibile"}
+
+            {venue?.city?.name
+              ? `, ${venue.city.name}`
+              : ""}
+          </span>
+        </div>
+
+        <a
+          className="event-card__link"
+          href={event.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Dettagli evento
+        </a>
+      </div>
+    </article>
+  );
+}
