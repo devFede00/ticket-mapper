@@ -1,4 +1,4 @@
-import type { TicketmasterEvent } from "@/types/ticketmaster";
+import type { TicketmasterEvent } from "@/types/ticketmaster-dto";
 
 interface EventCardProps {
   event: TicketmasterEvent;

@@ -11,7 +11,7 @@ import {
 import type {
   EventsApiResponse,
   TicketmasterEvent,
-} from "@/types/ticketmaster";
+} from "@/types/ticketmaster-dto";
 
 import {
   normalizeItalianRegion,getRegionFromCity} from "@/lib/italian-regions";

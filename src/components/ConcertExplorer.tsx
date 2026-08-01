@@ -11,12 +11,13 @@ import type {
   EventsApiResponse,
   TicketmasterEvent,
   TicketmasterPage,
-} from "@/types/ticketmaster";
+} from "@/types/ticketmaster-dto";
 
 import ItalyEventsMap from "./ItalyEventsMap";
 
 import EventCard from "./EventCard";
 import ThemeToggle from "./ThemeToggle";
+import SearchAutocomplete from "./SearchSuggestions";
 
 interface Filters {
   keyword: string;
@@ -206,6 +207,10 @@ export default function ConcertExplorer() {
     pagination !== null &&
     currentPage + 1 < pagination.totalPages;
 
+
+
+
+
   return (
     <>
       <header className="site-header">
@@ -262,22 +267,50 @@ export default function ConcertExplorer() {
                 />
               </svg>
 
-              <input
-                type="search"
+              <SearchAutocomplete
                 value={formFilters.keyword}
-                onChange={(event) =>
+                onChange={(value) => {
                   setFormFilters((current) => ({
                     ...current,
-                    keyword: event.target.value,
-                  }))
-                }
-                placeholder="Cerca artista o concerto"
-                aria-label="Cerca artista o concerto"
+                    keyword: value,
+                  }));
+                }}
+                onAttractionSelect={(attraction) => {
+                  const nextFilters = {
+                    ...formFilters,
+                    keyword: attraction.name,
+                  };
+
+                  setFormFilters(nextFilters);
+                  setAppliedFilters(nextFilters);
+                  setCurrentPage(0);
+                }}
+                onEventSelect={(event) => {
+                  window.open(
+                    event.url,
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }}
+                onVenueSelect={(venue) => {
+                  const nextFilters = {
+                    ...formFilters,
+                    keyword: "",
+                    city: venue.city?.name ?? venue.name ?? "",
+                  };
+
+                  setFormFilters(nextFilters);
+                  setAppliedFilters(nextFilters);
+                  setCurrentPage(0);
+                }}
               />
 
-              <button type="submit">
+              <button
+                className="main-search__submit"
+                type="submit"
+              >
                 Cerca
-              </button>
+              </button> 
             </div>
 
             <div className="filters">
