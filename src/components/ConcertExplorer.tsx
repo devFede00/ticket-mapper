@@ -14,6 +14,7 @@ import ItalyEventsMap from "./ItalyEventsMap";
 
 import EventCard from "./EventCard";
 import ThemeToggle from "./ThemeToggle";
+import SearchAutocomplete from "./SearchSuggestions";
 
 import { ExternalLink, Grid3X3, Info, List, Map, Search } from "lucide-react";
 interface Filters {
@@ -274,6 +275,10 @@ export default function ConcertExplorer() {
   const hasNextPage =
     pagination !== null && currentPage + 1 < pagination.totalPages;
 
+
+
+
+
   return (
     <>
       <header className="site-header">
@@ -303,18 +308,50 @@ export default function ConcertExplorer() {
             <div className="main-search">
               <Search aria-hidden="true" size={21} strokeWidth={1.8} />
 
-              <input
-                type="search"
+              <SearchAutocomplete
                 value={formFilters.keyword}
-                onChange={(event) =>
+                onChange={(value) => {
                   setFormFilters((current) => ({
                     ...current,
-                    keyword: event.target.value,
-                  }))
-                }
-                placeholder="Cerca artista o concerto"
-                aria-label="Cerca artista o concerto"
+                    keyword: value,
+                  }));
+                }}
+                onAttractionSelect={(attraction) => {
+                  const nextFilters = {
+                    ...formFilters,
+                    keyword: attraction.name,
+                  };
+
+                  setFormFilters(nextFilters);
+                  setAppliedFilters(nextFilters);
+                  setCurrentPage(0);
+                }}
+                onEventSelect={(event) => {
+                  window.open(
+                    event.url,
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }}
+                onVenueSelect={(venue) => {
+                  const nextFilters = {
+                    ...formFilters,
+                    keyword: "",
+                    city: venue.city?.name ?? venue.name ?? "",
+                  };
+
+                  setFormFilters(nextFilters);
+                  setAppliedFilters(nextFilters);
+                  setCurrentPage(0);
+                }}
               />
+
+              <button
+                className="main-search__submit"
+                type="submit"
+              >
+                Cerca
+              </button> 
             </div>
 
             <div className="filters">
