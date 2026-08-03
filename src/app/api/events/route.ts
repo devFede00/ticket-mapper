@@ -1,4 +1,4 @@
-import { getItalianMusicEvents } from "@/lib/ticketmaster";
+import { getItalianMusicEvents } from "@/lib/ticketmaster-service";
 
 function parseSize(value: string | null): number {
   if (!value) {

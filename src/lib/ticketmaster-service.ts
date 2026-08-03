@@ -22,11 +22,35 @@ function convertDateToTicketmasterDateTime(
     : `${date}T00:00:00Z`;
 }
 
+<<<<<<< HEAD:src/lib/ticketmaster.ts
 
+=======
+function getTodayDateInItaly(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Rome",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    throw new Error("Impossibile determinare la data corrente italiana");
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+//CHIAMATA API che restituisce i primi massimi 200 risultati che rispettano i filtri inviati in fase di ricerca
+>>>>>>> 154e55e (Aggiunto controllo per la ricerca tramite date (almeno da oggi e almeno fino a domani)):src/lib/ticketmaster-service.ts
 export async function getItalianMusicEvents(
   filters: EventSearchFilters = {},
 ): Promise<TicketmasterEventsResponse> {
   const apiKey = process.env.TICKETMASTER_API_KEY;
+  
 
   if (!apiKey) {
     throw new Error(
@@ -51,12 +75,9 @@ export async function getItalianMusicEvents(
     url.searchParams.set("city", filters.city.trim());
   }
 
-  if (filters.startDate) {
-    url.searchParams.set(
-      "startDateTime",
-      convertDateToTicketmasterDateTime(filters.startDate),
-    );
-  }
+  const effectiveStartDate = filters.startDate ?? getTodayDateInItaly();
+  url.searchParams.set("startDateTime",convertDateToTicketmasterDateTime(effectiveStartDate));
+  
 
   if (filters.endDate) {
     url.searchParams.set(

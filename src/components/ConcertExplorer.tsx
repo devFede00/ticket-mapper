@@ -61,6 +61,31 @@ function buildQueryString(
   return params.toString();
 }
 
+function getItalianDateOffset(
+  offsetDays = 0,
+  now = new Date(),
+): string {
+  const italianDate = new Date(
+    now.toLocaleString("en-US", {
+      timeZone: "Europe/Rome",
+    }),
+  );
+
+  italianDate.setDate(
+    italianDate.getDate() + offsetDays,
+  );
+
+  const year = italianDate.getFullYear();
+  const month = String(
+    italianDate.getMonth() + 1,
+  ).padStart(2, "0");
+  const day = String(
+    italianDate.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function ConcertExplorer() {
   const [formFilters, setFormFilters] =
     useState<Filters>(INITIAL_FILTERS);
@@ -84,6 +109,9 @@ export default function ConcertExplorer() {
     null,
   );
 
+  const today = getItalianDateOffset(0);
+  const tomorrow = getItalianDateOffset(1);
+  
  const loadEvents = useCallback(
   async (filters: Filters, page: number) => {
     setLoading(true);
@@ -303,6 +331,7 @@ export default function ConcertExplorer() {
                 <input
                   type="date"
                   value={formFilters.startDate}
+                  min = {today}
                   onChange={(event) =>
                     setFormFilters((current) => ({
                       ...current,
@@ -318,7 +347,7 @@ export default function ConcertExplorer() {
                 <input
                   type="date"
                   value={formFilters.endDate}
-                  min={formFilters.startDate || undefined}
+                  min={tomorrow}
                   onChange={(event) =>
                     setFormFilters((current) => ({
                       ...current,
