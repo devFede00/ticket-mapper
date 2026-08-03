@@ -22,9 +22,6 @@ function convertDateToTicketmasterDateTime(
     : `${date}T00:00:00Z`;
 }
 
-<<<<<<< HEAD:src/lib/ticketmaster.ts
-
-=======
 function getTodayDateInItaly(now = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Rome",
@@ -45,7 +42,6 @@ function getTodayDateInItaly(now = new Date()): string {
 }
 
 //CHIAMATA API che restituisce i primi massimi 200 risultati che rispettano i filtri inviati in fase di ricerca
->>>>>>> 154e55e (Aggiunto controllo per la ricerca tramite date (almeno da oggi e almeno fino a domani)):src/lib/ticketmaster-service.ts
 export async function getItalianMusicEvents(
   filters: EventSearchFilters = {},
 ): Promise<TicketmasterEventsResponse> {
