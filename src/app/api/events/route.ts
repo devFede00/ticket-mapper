@@ -35,6 +35,7 @@ export async function GET(request: Request) {
     const data = await getItalianMusicEvents({
       keyword: searchParams.get("keyword") ?? undefined,
       city: searchParams.get("city") ?? undefined,
+      genreId: searchParams.get("genreId") ?? undefined,
       startDate: searchParams.get("startDate") ?? undefined,
       endDate: searchParams.get("endDate") ?? undefined,
       page: parsePage(searchParams.get("page")),

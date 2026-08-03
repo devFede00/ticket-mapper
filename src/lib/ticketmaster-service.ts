@@ -1,4 +1,4 @@
-import type { TicketmasterEventsResponse } from "@/types/ticketmaster";
+import type { GenreOption, TicketmasterClassificationsResponse, TicketmasterEventsResponse, TicketmasterGenre } from "@/types/ticketmaster-dto";
 import { CITY_TO_REGION } from "@/data/italian-cities";
 
 const TICKETMASTER_BASE_URL =
@@ -9,6 +9,7 @@ export interface EventSearchFilters {
   city?: string;
   startDate?: string;
   endDate?: string;
+  genreId?: string;
   page?: number;
   size?: number;
 }
@@ -73,7 +74,7 @@ export async function getItalianMusicEvents(
 
   const effectiveStartDate = filters.startDate ?? getTodayDateInItaly();
   url.searchParams.set("startDateTime",convertDateToTicketmasterDateTime(effectiveStartDate));
-  
+
 
   if (filters.endDate) {
     url.searchParams.set(
@@ -83,6 +84,10 @@ export async function getItalianMusicEvents(
         true,
       ),
     );
+  }
+
+  if (filters.genreId?.trim()) {
+    url.searchParams.set("genreId", filters.genreId.trim());
   }
 
   const response = await fetch(url, {
@@ -126,3 +131,66 @@ console.log(
 
 return data;
 }
+
+export async function getMusicGenres(): Promise<GenreOption[]> {
+  const apiKey = process.env.TICKETMASTER_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "Variabile TICKETMASTER_API_KEY non configurata",
+    );
+  }
+
+  const url = new URL(
+    `${TICKETMASTER_BASE_URL}/classifications.json`,
+  );
+
+  url.searchParams.set("apikey", apiKey);
+  url.searchParams.set("locale", "*");
+  url.searchParams.set("size", "200");
+  url.searchParams.set("sort", "name,asc");
+
+  const response = await fetch(url, {
+    next: {
+      revalidate: 86400,
+    },
+  });
+
+  if (!response.ok) {
+    const responseBody = await response.text();
+
+    throw new Error(
+      `Ticketmaster classifications error ${response.status}: ${responseBody}`,
+    );
+  }
+
+  const data =
+    (await response.json()) as TicketmasterClassificationsResponse;
+
+  const musicClassification =
+    data._embedded?.classifications?.find(
+      ({ segment }) =>
+        segment?.name?.trim().toLowerCase() === "music",
+    );
+
+  const genres =
+    musicClassification?.segment?._embedded?.genres ?? [];
+
+  return genres
+    .filter(
+      (genre): genre is TicketmasterGenre & {
+        id: string;
+        name: string;
+      } => Boolean(genre.id && genre.name),
+    )
+    .map(({ id, name }) => ({
+      id,
+      name,
+    }))
+    .sort((first, second) =>
+      first.name.localeCompare(second.name, "it", {
+        sensitivity: "base",
+      }),
+    );
+}
+
