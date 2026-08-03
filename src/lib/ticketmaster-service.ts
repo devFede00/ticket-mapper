@@ -1,8 +1,10 @@
-import type { GenreOption, TicketmasterClassificationsResponse, TicketmasterEventsResponse, TicketmasterGenre } from "@/types/ticketmaster-dto";
+import type { GenreOption, TicketmasterClassificationsResponse, TicketmasterEventsResponse, TicketmasterGenre, TicketmasterSuggestResponse } from "@/types/ticketmaster-dto";
 import { CITY_TO_REGION } from "@/data/italian-cities";
 
 const TICKETMASTER_BASE_URL =
   "https://app.ticketmaster.com/discovery/v2";
+
+const apiKey = process.env.TICKETMASTER_API_KEY;
 
 //Interfaccia per contenere i parametri di ricerca disponibili
 export interface EventSearchFilters {
@@ -47,7 +49,7 @@ function getTodayDateInItaly(now = new Date()): string {
 export async function getItalianMusicEvents(
   filters: EventSearchFilters = {},
 ): Promise<TicketmasterEventsResponse> {
-  const apiKey = process.env.TICKETMASTER_API_KEY;
+  
 
   if (!apiKey) {
     throw new Error(
@@ -143,6 +145,12 @@ export async function fetchSuggestions(
     return {};
   }
    const url = new URL(`${TICKETMASTER_BASE_URL}/suggest.json`);
+
+  if (!apiKey) {
+    throw new Error(
+      "Variabile TICKETMASTER_API_KEY non configurata",
+    );
+  }
 
   url.searchParams.set("apikey", apiKey);
   url.searchParams.set("countryCode", "IT");

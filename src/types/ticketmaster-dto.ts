@@ -143,6 +143,8 @@ export interface TicketmasterSuggestResponse {
     venues?: TicketmasterVenue[];
   };
 }
+
+/*
  * CLASSIFICAZIONI E GENERI
  * Endpoint: /discovery/v2/classifications
  * ======================================================= */

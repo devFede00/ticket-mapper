@@ -120,7 +120,7 @@ export default function ConcertExplorer() {
   const tomorrow = getItalianDateOffset(1);
 
   const [genres, setGenres] = useState<GenreOption[]>([]);
-  const [genresLoading, setGenresLoading] = useState(true);
+  const [genresLoading, setGenresLoading] = useState(false);
   const [genresError, setGenresError] = useState(false);
 
   const loadEvents = useCallback(async (filters: Filters, page: number) => {
