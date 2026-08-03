@@ -1,5 +1,6 @@
 "use client";
 
+import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
@@ -54,45 +55,17 @@ export default function ThemeToggle() {
       }
     >
       {!mounted || theme === "light" ? (
-        <svg
+        <Moon
           aria-hidden="true"
-          viewBox="0 0 24 24"
-          width="22"
-          height="22"
-        >
-          <path
-            d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+          size={22}
+          strokeWidth={1.8}
+        />
       ) : (
-        <svg
+        <Sun
           aria-hidden="true"
-          viewBox="0 0 24 24"
-          width="22"
-          height="22"
-        >
-          <circle
-            cx="12"
-            cy="12"
-            r="4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          />
-
-          <path
-            d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
+          size={22}
+          strokeWidth={1.8}
+        />
       )}
     </button>
   );

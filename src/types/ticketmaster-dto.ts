@@ -143,3 +143,47 @@ export interface TicketmasterSuggestResponse {
     venues?: TicketmasterVenue[];
   };
 }
+ * CLASSIFICAZIONI E GENERI
+ * Endpoint: /discovery/v2/classifications
+ * ======================================================= */
+
+export interface TicketmasterGenre {
+  id?: string;
+  name?: string;
+
+  _embedded?: {
+    subgenres?: Array<{
+      id?: string;
+      name?: string;
+    }>;
+  };
+}
+
+export interface TicketmasterClassificationNode {
+  segment?: {
+    id?: string;
+    name?: string;
+
+    _embedded?: {
+      genres?: TicketmasterGenre[];
+    };
+  };
+}
+
+export interface TicketmasterClassificationsResponse {
+  _embedded?: {
+    classifications?: TicketmasterClassificationNode[];
+  };
+}
+
+/**
+ * Formato normalizzato restituito al frontend.
+ */
+export interface GenreOption {
+  id: string;
+  name: string;
+}
+
+export interface GenresApiResponse {
+  genres: GenreOption[];
+}

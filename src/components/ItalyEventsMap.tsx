@@ -1,6 +1,7 @@
 "use client";
 
 import ItalyMapData from "@svg-maps/italy";
+import { ExternalLink, X } from "lucide-react";
 
 import {
   useEffect,
@@ -351,7 +352,11 @@ export default function ItalyEventsMap({
                       }
                       aria-label="Deseleziona regione"
                     >
-                      ×
+                      <X
+                        aria-hidden="true"
+                        size={20}
+                        strokeWidth={2}
+                      />
                     </button>
                   </div>
 
@@ -407,21 +412,11 @@ export default function ItalyEventsMap({
                               rel="noopener noreferrer"
                               aria-label={`Apri dettagli di ${event.name}`}
                             >
-                              <svg
+                              <ExternalLink
                                 aria-hidden="true"
-                                viewBox="0 0 24 24"
-                                width="18"
-                                height="18"
-                              >
-                                <path
-                                  d="M7 17 17 7M8 7h9v9"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="1.8"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
+                                size={18}
+                                strokeWidth={1.8}
+                              />
                             </a>
                           </li>
                         );

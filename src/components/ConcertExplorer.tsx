@@ -1,14 +1,11 @@
 "use client";
 
-import {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
-import type {
+import {
   EventsApiResponse,
+  GenreOption,
+  GenresApiResponse,
   TicketmasterEvent,
   TicketmasterPage,
 } from "@/types/ticketmaster-dto";
@@ -19,9 +16,11 @@ import EventCard from "./EventCard";
 import ThemeToggle from "./ThemeToggle";
 import SearchAutocomplete from "./SearchSuggestions";
 
+import { ExternalLink, Grid3X3, Info, List, Map, Search } from "lucide-react";
 interface Filters {
   keyword: string;
   city: string;
+  genreId: string;
   startDate: string;
   endDate: string;
 }
@@ -29,16 +28,35 @@ interface Filters {
 const INITIAL_FILTERS: Filters = {
   keyword: "",
   city: "",
+  genreId: "",
   startDate: "",
   endDate: "",
 };
 
-type ViewMode = "list" | "map";
+type ViewMode = "grid" | "list" | "map";
 
-function buildQueryString(
-  filters: Filters,
-  page: number,
-): string {
+function formatEventDate(date: string): string {
+  return new Intl.DateTimeFormat("it-IT", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${date}T12:00:00`));
+}
+
+function formatEventTime(time?: string): string | null {
+  return time ? time.slice(0, 5) : null;
+}
+
+function getEventGenre(event: TicketmasterEvent): string {
+  return (
+    event.classifications?.find((classification) => classification.primary)
+      ?.genre?.name ??
+    event.classifications?.[0]?.genre?.name ??
+    "Non disponibile"
+  );
+}
+
+function buildQueryString(filters: Filters, page: number): string {
   const params = new URLSearchParams();
 
   if (filters.keyword.trim()) {
@@ -47,6 +65,10 @@ function buildQueryString(
 
   if (filters.city.trim()) {
     params.set("city", filters.city.trim());
+  }
+
+  if (filters.genreId) {
+    params.set("genreId", filters.genreId);
   }
 
   if (filters.startDate) {
@@ -62,31 +84,46 @@ function buildQueryString(
   return params.toString();
 }
 
+function getItalianDateOffset(offsetDays = 0, now = new Date()): string {
+  const italianDate = new Date(
+    now.toLocaleString("en-US", {
+      timeZone: "Europe/Rome",
+    }),
+  );
+
+  italianDate.setDate(italianDate.getDate() + offsetDays);
+
+  const year = italianDate.getFullYear();
+  const month = String(italianDate.getMonth() + 1).padStart(2, "0");
+  const day = String(italianDate.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function ConcertExplorer() {
-  const [formFilters, setFormFilters] =
-    useState<Filters>(INITIAL_FILTERS);
+  const [formFilters, setFormFilters] = useState<Filters>(INITIAL_FILTERS);
 
   const [appliedFilters, setAppliedFilters] =
     useState<Filters>(INITIAL_FILTERS);
 
-  const [events, setEvents] = useState<
-    TicketmasterEvent[]
-  >([]);
+  const [events, setEvents] = useState<TicketmasterEvent[]>([]);
 
-  const [pagination, setPagination] =
-    useState<TicketmasterPage | null>(null);
+  const [pagination, setPagination] = useState<TicketmasterPage | null>(null);
 
-  const [viewMode, setViewMode] =
-    useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(
-    null,
-  );
+  const [error, setError] = useState<string | null>(null);
 
- const loadEvents = useCallback(
-  async (filters: Filters, page: number) => {
+  const today = getItalianDateOffset(0);
+  const tomorrow = getItalianDateOffset(1);
+
+  const [genres, setGenres] = useState<GenreOption[]>([]);
+  const [genresLoading, setGenresLoading] = useState(true);
+  const [genresError, setGenresError] = useState(false);
+
+  const loadEvents = useCallback(async (filters: Filters, page: number) => {
     setLoading(true);
     setError(null);
 
@@ -112,19 +149,13 @@ export default function ConcertExplorer() {
         console.error("Risposta errore:", errorBody);
         console.groupEnd();
 
-        throw new Error(
-          `Errore HTTP ${response.status}: ${errorBody}`,
-        );
+        throw new Error(`Errore HTTP ${response.status}: ${errorBody}`);
       }
 
-      const data =
-        (await response.json()) as EventsApiResponse;
+      const data = (await response.json()) as EventsApiResponse;
 
       console.log("Risposta completa:", data);
-      console.log(
-        "Numero eventi ricevuti:",
-        data.events.length,
-      );
+      console.log("Numero eventi ricevuti:", data.events.length);
       console.log("Paginazione:", data.pagination);
 
       console.table(
@@ -137,11 +168,8 @@ export default function ConcertExplorer() {
             data: event.dates.start.localDate,
             venue: venue?.name ?? "Non disponibile",
             città: venue?.city?.name ?? "Non disponibile",
-            regione:
-              venue?.state?.name ?? "Non disponibile",
-            codiceRegione:
-              venue?.state?.stateCode ??
-              "Non disponibile",
+            regione: venue?.state?.name ?? "Non disponibile",
+            codiceRegione: venue?.state?.stateCode ?? "Non disponibile",
           };
         }),
       );
@@ -151,26 +179,70 @@ export default function ConcertExplorer() {
       setEvents(data.events);
       setPagination(data.pagination);
     } catch (requestError) {
-      console.error(
-        "[ConcertExplorer] Errore caricamento:",
-        requestError,
-      );
+      console.error("[ConcertExplorer] Errore caricamento:", requestError);
 
       setEvents([]);
       setPagination(null);
-      setError(
-        "Non è stato possibile caricare gli eventi.",
-      );
+      setError("Non è stato possibile caricare gli eventi.");
     } finally {
       setLoading(false);
     }
-  },
-  [],
-);
+  }, []);
 
   useEffect(() => {
     void loadEvents(appliedFilters, currentPage);
   }, [appliedFilters, currentPage, loadEvents]);
+
+    useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadGenres() {
+      setGenresLoading(true);
+      setGenresError(false);
+
+      try {
+        const response = await fetch("/api/genres", {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Errore caricamento generi: ${response.status}`,
+          );
+        }
+
+        const data =
+          (await response.json()) as GenresApiResponse;
+
+        setGenres(data.genres);
+      } catch (requestError) {
+        if (
+          requestError instanceof DOMException &&
+          requestError.name === "AbortError"
+        ) {
+          return;
+        }
+
+        console.error(
+          "[ConcertExplorer] Errore generi:",
+          requestError,
+        );
+
+        setGenres([]);
+        setGenresError(true);
+      } finally {
+        if (!controller.signal.aborted) {
+          setGenresLoading(false);
+        }
+      }
+    }
+
+    void loadGenres();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -186,10 +258,7 @@ export default function ConcertExplorer() {
   }
 
   function goToPage(page: number) {
-    if (
-      page < 0 ||
-      (pagination && page >= pagination.totalPages)
-    ) {
+    if (page < 0 || (pagination && page >= pagination.totalPages)) {
       return;
     }
 
@@ -204,8 +273,7 @@ export default function ConcertExplorer() {
   const hasPreviousPage = currentPage > 0;
 
   const hasNextPage =
-    pagination !== null &&
-    currentPage + 1 < pagination.totalPages;
+    pagination !== null && currentPage + 1 < pagination.totalPages;
 
 
 
@@ -216,15 +284,13 @@ export default function ConcertExplorer() {
       <header className="site-header">
         <div className="site-header__content">
           <div>
-            <span className="site-header__eyebrow">
-              Live music finder
-            </span>
+            <span className="site-header__eyebrow">Live music finder</span>
 
             <h1>Concerti Italia</h1>
 
             <p>
-              Cerca concerti, artisti e spettacoli
-              musicali disponibili in Italia.
+              Cerca concerti, artisti e spettacoli musicali disponibili in
+              Italia.
             </p>
           </div>
 
@@ -233,39 +299,14 @@ export default function ConcertExplorer() {
       </header>
 
       <main className="page-container">
-        <section
-          className="search-panel"
-          aria-labelledby="search-title"
-        >
+        <section className="search-panel" aria-labelledby="search-title">
           <h2 id="search-title" className="sr-only">
             Cerca concerti
           </h2>
 
           <form onSubmit={handleSubmit}>
             <div className="main-search">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                width="21"
-                height="21"
-              >
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="7"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                />
-
-                <path
-                  d="m20 20-4-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <Search aria-hidden="true" size={21} strokeWidth={1.8} />
 
               <SearchAutocomplete
                 value={formFilters.keyword}
@@ -331,11 +372,41 @@ export default function ConcertExplorer() {
               </label>
 
               <label>
+                <span>Genere</span>
+
+                <select
+                  value={formFilters.genreId}
+                  disabled={genresLoading || genresError}
+                  onChange={(event) =>
+                    setFormFilters((current) => ({
+                      ...current,
+                      genreId: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">
+                    {genresLoading
+                      ? "Caricamento generi..."
+                      : genresError
+                        ? "Generi non disponibili"
+                        : "Tutti i generi"}
+                  </option>
+
+                  {genres.map((genre) => (
+                    <option key={genre.id} value={genre.id}>
+                      {genre.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
                 <span>Dal</span>
 
                 <input
                   type="date"
                   value={formFilters.startDate}
+                  min={today}
                   onChange={(event) =>
                     setFormFilters((current) => ({
                       ...current,
@@ -351,7 +422,7 @@ export default function ConcertExplorer() {
                 <input
                   type="date"
                   value={formFilters.endDate}
-                  min={formFilters.startDate || undefined}
+                  min={tomorrow}
                   onChange={(event) =>
                     setFormFilters((current) => ({
                       ...current,
@@ -360,7 +431,9 @@ export default function ConcertExplorer() {
                   }
                 />
               </label>
+            </div>
 
+            <div className="filter-actions">
               <button
                 className="secondary-button"
                 type="button"
@@ -368,190 +441,221 @@ export default function ConcertExplorer() {
               >
                 Azzera filtri
               </button>
+
+              <button className="primary-button" type="submit">
+                Applica filtri
+              </button>
             </div>
+
           </form>
         </section>
 
-        <section
-          className="results-section"
-          aria-labelledby="results-title"
-        >
+          <aside className="results-disclaimer" aria-label="Nota sui risultati">
+            <Info aria-hidden="true" size={19} strokeWidth={2} />
+
+            <p>
+              Le informazioni mostrate potrebbero differire da quelle pubblicate sulle
+              pagine ufficiali degli eventi. Verifica sempre date, orari e disponibilità
+              prima dell’acquisto.
+            </p>
+          </aside>
+
+        <section className="results-section" aria-labelledby="results-title">
           <div className="results-header">
             <div>
-              <span className="results-header__label">
-                Risultati
-              </span>
+              <span className="results-header__label">Risultati</span>
 
-              <h2 id="results-title">
-                Eventi disponibili
-              </h2>
+              <h2 id="results-title">Eventi disponibili</h2>
             </div>
 
             <div className="results-header__actions">
-              {pagination && viewMode === "list" && (
+              {pagination && viewMode !== "map" && (
                 <span className="results-count">
                   {pagination.totalElements} eventi
                 </span>
               )}
-                <div
-                    className="view-switcher"
-                    aria-label="Modalità visualizzazione"
-                  >
-                    <button
-                      type="button"
-                      className={
-                        viewMode === "list"
-                          ? "view-switcher__button view-switcher__button--active"
-                          : "view-switcher__button"
-                      }
-                      onClick={() => setViewMode("list")}
-                      aria-pressed={viewMode === "list"}
-                    >
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        width="18"
-                        height="18"
-                      >
-                        <path
-                          d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+              <div
+                className="view-switcher"
+                aria-label="Modalità visualizzazione"
+              >
+                <button
+                  type="button"
+                  className={
+                    viewMode === "grid"
+                      ? "view-switcher__button view-switcher__button--active"
+                      : "view-switcher__button"
+                  }
+                  onClick={() => setViewMode("grid")}
+                  aria-pressed={viewMode === "grid"}
+                >
+                  <Grid3X3 aria-hidden="true" size={18} strokeWidth={2} />
+                  Griglia
+                </button>
 
-                      Lista
-                    </button>
+                <button
+                  type="button"
+                  className={
+                    viewMode === "list"
+                      ? "view-switcher__button view-switcher__button--active"
+                      : "view-switcher__button"
+                  }
+                  onClick={() => setViewMode("list")}
+                  aria-pressed={viewMode === "list"}
+                >
+                  <List aria-hidden="true" size={18} strokeWidth={2} />
+                  Lista
+                </button>
 
-                    <button
-                      type="button"
-                      className={
-                        viewMode === "map"
-                          ? "view-switcher__button view-switcher__button--active"
-                          : "view-switcher__button"
-                      }
-                      onClick={() => setViewMode("map")}
-                      aria-pressed={viewMode === "map"}
-                    >
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        width="18"
-                        height="18"
-                      >
-                        <path
-                          d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinejoin="round"
-                        />
-
-                        <path
-                          d="M9 3v15M15 6v15"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                        />
-                      </svg>
-
-                      Mappa
-                    </button>
-                  </div>
+                <button
+                  type="button"
+                  className={
+                    viewMode === "map"
+                      ? "view-switcher__button view-switcher__button--active"
+                      : "view-switcher__button"
+                  }
+                  onClick={() => setViewMode("map")}
+                  aria-pressed={viewMode === "map"}
+                >
+                  <Map aria-hidden="true" size={18} strokeWidth={1.8} />
+                  Mappa
+                </button>
               </div>
             </div>
-          {viewMode === "list" && (
-              <>
+          </div>
+          {viewMode !== "map" && (
+            <>
               {!loading && !error && events.length > 0 && (
-                  <>
+                <>
+                  {viewMode === "grid" ? (
                     <div className="event-grid">
                       {events.map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                        />
+                        <EventCard key={event.id} event={event} />
                       ))}
                     </div>
+                  ) : (
+                    <div className="event-table-wrapper">
+                      <table className="event-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Evento</th>
+                            <th scope="col">Categoria</th>
+                            <th scope="col">Luogo</th>
+                            <th scope="col">Data e ora</th>
+                            <th scope="col">Azioni</th>
+                          </tr>
+                        </thead>
 
-                    <nav
-                      className="pagination"
-                      aria-label="Paginazione eventi"
+                        <tbody>
+                          {events.map((event) => {
+                            const venue = event._embedded?.venues?.[0];
+                            const eventTime = formatEventTime(
+                              event.dates.start.localTime,
+                            );
+
+                            return (
+                              <tr key={event.id}>
+                                <td>
+                                  <strong>{event.name}</strong>
+                                </td>
+                                <td>{getEventGenre(event)}</td>
+                                <td>
+                                  <span className="event-table__venue">
+                                    {venue?.name ?? "Luogo non disponibile"}
+                                    {venue?.city?.name
+                                      ? `, ${venue.city.name}`
+                                      : ""}
+                                  </span>
+                                </td>
+                                <td>
+                                  <time
+                                    dateTime={`${event.dates.start.localDate}${
+                                      eventTime ? `T${eventTime}` : ""
+                                    }`}
+                                  >
+                                    {formatEventDate(
+                                      event.dates.start.localDate,
+                                    )}
+                                    {eventTime ? `, ore ${eventTime}` : ""}
+                                  </time>
+                                </td>
+                                <td>
+                                  <a
+                                    className="event-table__link"
+                                    href={event.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={`Apri i dettagli di ${event.name}`}
+                                  >
+                                    Dettagli
+                                    <ExternalLink
+                                      aria-hidden="true"
+                                      size={16}
+                                    />
+                                  </a>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <nav className="pagination" aria-label="Paginazione eventi">
+                    <button
+                      type="button"
+                      disabled={!hasPreviousPage}
+                      onClick={() => goToPage(currentPage - 1)}
                     >
-                      <button
-                        type="button"
-                        disabled={!hasPreviousPage}
-                        onClick={() =>
-                          goToPage(currentPage - 1)
-                        }
-                      >
-                        Precedente
-                      </button>
+                      Precedente
+                    </button>
 
-                      <span>
-                        Pagina {currentPage + 1}
-                        {pagination
-                          ? ` di ${pagination.totalPages}`
-                          : ""}
-                      </span>
+                    <span>
+                      Pagina {currentPage + 1}
+                      {pagination ? ` di ${pagination.totalPages}` : ""}
+                    </span>
 
-                      <button
-                        type="button"
-                        disabled={!hasNextPage}
-                        onClick={() =>
-                          goToPage(currentPage + 1)
-                        }
-                      >
-                        Successiva
-                      </button>
-                    </nav>
-                  </>
-                )}
-                {loading && (
-            <div
-              className="status-message"
-              role="status"
-            >
-              Caricamento concerti...
-            </div>
+                    <button
+                      type="button"
+                      disabled={!hasNextPage}
+                      onClick={() => goToPage(currentPage + 1)}
+                    >
+                      Successiva
+                    </button>
+                  </nav>
+                </>
+              )}
+              {loading && (
+                <div className="status-message" role="status">
+                  Caricamento concerti...
+                </div>
+              )}
+
+              {!loading && error && (
+                <div
+                  className="status-message status-message--error"
+                  role="alert"
+                >
+                  <p>{error}</p>
+
+                  <button
+                    type="button"
+                    onClick={() => void loadEvents(appliedFilters, currentPage)}
+                  >
+                    Riprova
+                  </button>
+                </div>
+              )}
+
+              {!loading && !error && events.length === 0 && (
+                <div className="status-message">
+                  Nessun concerto trovato con i filtri selezionati.
+                </div>
+              )}
+            </>
           )}
 
-          {!loading && error && (
-            <div
-              className="status-message status-message--error"
-              role="alert"
-            >
-              <p>{error}</p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  void loadEvents(
-                    appliedFilters,
-                    currentPage,
-                  )
-                }
-              >
-                Riprova
-              </button>
-            </div>
-          )}
-
-          {!loading && !error && events.length === 0 && (
-              <div className="status-message">
-                Nessun concerto trovato con i filtri
-                selezionati.
-              </div>
-            )}
-
-              </>
-            )}
-
-            {viewMode === "map" && (
-              <ItalyEventsMap filters={appliedFilters} />
-            )}
-
+          {viewMode === "map" && <ItalyEventsMap filters={appliedFilters} />}
         </section>
       </main>
     </>
