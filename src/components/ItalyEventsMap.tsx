@@ -196,7 +196,7 @@ export default function ItalyEventsMap({
 
   if (loading) {
     return (
-      <div className="status-message" role="status">
+      <div className="rounded-2xl border bg-card p-12 text-center text-muted-foreground" role="status">
         Caricamento mappa...
       </div>
     );
@@ -204,10 +204,7 @@ export default function ItalyEventsMap({
 
   if (error) {
     return (
-      <div
-        className="status-message status-message--error"
-        role="alert"
-      >
+      <div className="rounded-2xl border bg-card p-12 text-center text-destructive" role="alert">
         {error}
       </div>
     );
@@ -220,7 +217,7 @@ export default function ItalyEventsMap({
     >
       <div className="map-section__header">
         <div>
-          <span className="results-header__label">
+          <span className="mb-2 block text-xs font-bold tracking-[0.12em] text-primary uppercase">
             Distribuzione geografica
           </span>
 

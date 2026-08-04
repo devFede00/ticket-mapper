@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type {
   TicketmasterAttraction,
   TicketmasterSuggestEvent,
@@ -43,6 +45,8 @@ export default function SearchAutocomplete({
     const normalizedValue = value.trim();
 
     if (normalizedValue.length < 2) {
+      // Il reset mantiene chiuso il pannello quando la query non è valida.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions({});
       setIsOpen(false);
       setLoading(false);
@@ -144,8 +148,9 @@ export default function SearchAutocomplete({
   }
 
   return (
-    <div className="search-autocomplete">
-      <input
+    <div className="relative h-14 w-full min-w-0">
+      <Input
+        className="h-14 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
         type="search"
         value={value}
         placeholder="Cerca artista, evento o luogo"
@@ -164,7 +169,7 @@ export default function SearchAutocomplete({
       />
 
       {loading && (
-        <span className="search-autocomplete__loading">
+        <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
           Ricerca...
         </span>
       )}
@@ -172,14 +177,16 @@ export default function SearchAutocomplete({
       {isOpen && !loading && (
         <div
           id="search-suggestions"
-          className="search-autocomplete__results"
+          className="absolute top-[calc(100%+10px)] left-0 z-50 max-h-105 w-[min(620px,calc(100vw-48px))] overflow-y-auto rounded-xl border bg-popover p-2.5 text-popover-foreground shadow-xl max-sm:-left-12 max-sm:max-h-90 max-sm:w-[calc(100vw-54px)]"
         >
           {attractions.length > 0 && (
-            <section>
-              <h3>Artisti</h3>
+            <section className="grid gap-1">
+              <h3 className="px-2.5 py-1 text-xs font-bold tracking-wider text-muted-foreground uppercase">Artisti</h3>
 
               {attractions.map((attraction) => (
-                <button
+                <Button
+                  className="h-auto min-h-11 w-full justify-start whitespace-normal px-2.5 py-2 text-left"
+                  variant="ghost"
                   key={attraction.id}
                   type="button"
                   onClick={() =>
@@ -187,17 +194,19 @@ export default function SearchAutocomplete({
                   }
                 >
                   {attraction.name}
-                </button>
+                </Button>
               ))}
             </section>
           )}
 
           {events.length > 0 && (
-            <section>
-              <h3>Eventi</h3>
+            <section className="mt-3 grid gap-1 border-t pt-3">
+              <h3 className="px-2.5 py-1 text-xs font-bold tracking-wider text-muted-foreground uppercase">Eventi</h3>
 
               {events.map((event) => (
-                <button
+                <Button
+                  className="h-auto min-h-11 w-full justify-start whitespace-normal px-2.5 py-2 text-left"
+                  variant="ghost"
                   key={event.id}
                   type="button"
                   onClick={() =>
@@ -205,32 +214,36 @@ export default function SearchAutocomplete({
                   }
                 >
                   {event.name}
-                </button>
+                </Button>
               ))}
             </section>
           )}
 
           {venues.length > 0 && (
-            <section>
-              <h3>Luoghi</h3>
+            <section className="mt-3 grid gap-1 border-t pt-3">
+              <h3 className="px-2.5 py-1 text-xs font-bold tracking-wider text-muted-foreground uppercase">Luoghi</h3>
 
               {venues.map((venue) => (
-                <button
+                <Button
+                  className="h-auto min-h-11 w-full justify-start whitespace-normal px-2.5 py-2 text-left"
+                  variant="ghost"
                   key={venue.id ?? venue.name}
                   type="button"
                   onClick={() =>
                     handleVenueSelect(venue)
                   }
                 >
-                  <strong>
+                  <span>
+                    <strong className="block">
                     {venue.name ??
                       "Luogo non disponibile"}
-                  </strong>
+                    </strong>
 
                   {venue.city?.name && (
-                    <span>{venue.city.name}</span>
+                    <span className="block text-xs text-muted-foreground">{venue.city.name}</span>
                   )}
-                </button>
+                  </span>
+                </Button>
               ))}
             </section>
           )}

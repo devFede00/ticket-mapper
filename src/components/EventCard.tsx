@@ -1,5 +1,14 @@
 import { MapPin } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type { TicketmasterEvent } from "@/types/ticketmaster-dto";
 
 interface EventCardProps {
@@ -53,29 +62,29 @@ export default function EventCard({
     event.classifications?.[0]?.genre?.name;
 
   return (
-    <article className="event-card">
-      <div className="event-card__image-wrapper">
+    <Card className="group gap-0 py-0 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative aspect-video overflow-hidden bg-muted">
         {imageUrl ? (
           <img
-            className="event-card__image"
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
             src={imageUrl}
             alt=""
           />
         ) : (
-          <div className="event-card__placeholder">
+          <div className="grid size-full place-items-center text-muted-foreground">
             Nessuna immagine
           </div>
         )}
 
         {genre && (
-          <span className="event-card__genre">
+          <Badge className="absolute top-3 left-3 border-0 bg-black/75 text-white backdrop-blur-sm">
             {genre}
-          </span>
+          </Badge>
         )}
       </div>
 
-      <div className="event-card__content">
-        <div className="event-card__metadata">
+      <CardHeader className="pt-5">
+        <div className="flex justify-between gap-3 text-xs font-semibold text-primary">
           <span>
             {formatEventDate(
               event.dates.start.localDate,
@@ -85,12 +94,14 @@ export default function EventCard({
           {eventTime && <span>Ore {eventTime}</span>}
         </div>
 
-        <h2 className="event-card__title">
-          {event.name}
-        </h2>
+        <CardTitle className="mt-2 text-xl">
+          <h2>{event.name}</h2>
+        </CardTitle>
+      </CardHeader>
 
-        <div className="event-card__venue">
+      <CardContent className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
           <MapPin
+            className="mt-0.5 shrink-0"
             aria-hidden="true"
             size={18}
             strokeWidth={1.8}
@@ -103,17 +114,19 @@ export default function EventCard({
               ? `, ${venue.city.name}`
               : ""}
           </span>
-        </div>
+      </CardContent>
 
-        <a
-          className="event-card__link"
-          href={event.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Dettagli evento
-        </a>
-      </div>
-    </article>
+      <CardFooter className="mt-auto border-0 bg-transparent p-4 pt-2">
+        <Button asChild variant="outline" className="w-full">
+          <a
+            href={event.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Dettagli evento
+          </a>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

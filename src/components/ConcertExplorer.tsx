@@ -17,6 +17,28 @@ import ThemeToggle from "./ThemeToggle";
 import SearchAutocomplete from "./SearchSuggestions";
 
 import { ExternalLink, Grid3X3, Info, List, Map, Search } from "lucide-react";
+
+import {
+  Alert,
+  AlertDescription,
+} from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 interface Filters {
   keyword: string;
   city: string;
@@ -190,6 +212,8 @@ export default function ConcertExplorer() {
   }, []);
 
   useEffect(() => {
+    // La richiesta iniziale sincronizza la UI con i filtri applicati.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadEvents(appliedFilters, currentPage);
   }, [appliedFilters, currentPage, loadEvents]);
 
@@ -281,14 +305,18 @@ export default function ConcertExplorer() {
 
   return (
     <>
-      <header className="site-header">
-        <div className="site-header__content">
+      <header className="bg-neutral-950 text-white">
+        <div className="mx-auto flex min-h-65 w-[min(1220px,calc(100%-40px))] items-start justify-between gap-8 py-14 pb-18 max-sm:min-h-57.5 max-sm:w-[min(100%-24px,1220px)] max-sm:pt-9">
           <div>
-            <span className="site-header__eyebrow">Live music finder</span>
+            <span className="mb-2.5 block text-xs font-bold tracking-[0.12em] text-indigo-200 uppercase">
+              Live music finder
+            </span>
 
-            <h1>Concerti Italia</h1>
+            <h1 className="text-[clamp(2.4rem,7vw,5rem)] leading-[0.95] font-bold tracking-[-0.055em] max-sm:text-[2.8rem]">
+              Concerti Italia
+            </h1>
 
-            <p>
+            <p className="mt-6 max-w-155 text-base leading-7 text-neutral-300">
               Cerca concerti, artisti e spettacoli musicali disponibili in
               Italia.
             </p>
@@ -298,14 +326,17 @@ export default function ConcertExplorer() {
         </div>
       </header>
 
-      <main className="page-container">
-        <section className="search-panel" aria-labelledby="search-title">
+      <main className="mx-auto -mt-8.5 w-[min(1220px,calc(100%-40px))] pb-20 max-sm:-mt-7 max-sm:w-[min(100%-24px,1220px)]">
+        <section
+          className="relative z-2 rounded-3xl border bg-card p-6 shadow-xl max-sm:rounded-2xl max-sm:p-4"
+          aria-labelledby="search-title"
+        >
           <h2 id="search-title" className="sr-only">
             Cerca concerti
           </h2>
 
           <form onSubmit={handleSubmit}>
-            <div className="main-search">
+            <div className="relative grid min-h-14.5 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border bg-muted px-4 text-muted-foreground max-sm:px-3">
               <Search aria-hidden="true" size={21} strokeWidth={1.8} />
 
               <SearchAutocomplete
@@ -346,19 +377,20 @@ export default function ConcertExplorer() {
                 }}
               />
 
-              <button
-                className="main-search__submit"
+              <Button
+                className="h-11 px-6 max-sm:col-span-full max-sm:-mx-3 max-sm:-mb-px max-sm:h-12 max-sm:rounded-t-none"
                 type="submit"
               >
                 Cerca
-              </button> 
+              </Button>
             </div>
 
-            <div className="filters">
-              <label>
+            <div className="mt-5 grid grid-cols-[minmax(180px,1.5fr)_repeat(3,minmax(150px,1fr))] items-end gap-3.5 max-lg:grid-cols-2 max-sm:grid-cols-1">
+              <label className="grid gap-2 text-sm font-semibold text-muted-foreground">
                 <span>Città</span>
 
-                <input
+                <Input
+                  className="h-11"
                   type="text"
                   value={formFilters.city}
                   onChange={(event) =>
@@ -371,39 +403,46 @@ export default function ConcertExplorer() {
                 />
               </label>
 
-              <label>
+              <label className="grid gap-2 text-sm font-semibold text-muted-foreground">
                 <span>Genere</span>
 
-                <select
-                  value={formFilters.genreId}
+                <Select
+                  value={formFilters.genreId || "all"}
                   disabled={genresLoading || genresError}
-                  onChange={(event) =>
+                  onValueChange={(value) =>
                     setFormFilters((current) => ({
                       ...current,
-                      genreId: event.target.value,
+                      genreId: value === "all" ? "" : value,
                     }))
                   }
                 >
-                  <option value="">
-                    {genresLoading
-                      ? "Caricamento generi..."
-                      : genresError
-                        ? "Generi non disponibili"
-                        : "Tutti i generi"}
-                  </option>
-
-                  {genres.map((genre) => (
-                    <option key={genre.id} value={genre.id}>
-                      {genre.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-11 w-full">
+                    <SelectValue
+                      placeholder={
+                        genresLoading
+                          ? "Caricamento generi..."
+                          : genresError
+                            ? "Generi non disponibili"
+                            : "Tutti i generi"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tutti i generi</SelectItem>
+                    {genres.map((genre) => (
+                      <SelectItem key={genre.id} value={genre.id}>
+                        {genre.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </label>
 
-              <label>
+              <label className="grid gap-2 text-sm font-semibold text-muted-foreground">
                 <span>Dal</span>
 
-                <input
+                <Input
+                  className="h-11"
                   type="date"
                   value={formFilters.startDate}
                   min={today}
@@ -416,10 +455,11 @@ export default function ConcertExplorer() {
                 />
               </label>
 
-              <label>
+              <label className="grid gap-2 text-sm font-semibold text-muted-foreground">
                 <span>Al</span>
 
-                <input
+                <Input
+                  className="h-11"
                   type="date"
                   value={formFilters.endDate}
                   min={tomorrow}
@@ -433,92 +473,93 @@ export default function ConcertExplorer() {
               </label>
             </div>
 
-            <div className="filter-actions">
-              <button
-                className="secondary-button"
+            <div className="mt-5 flex justify-end gap-3 max-sm:flex-col-reverse">
+              <Button
+                variant="outline"
+                className="h-11 px-5"
                 type="button"
                 onClick={handleReset}
               >
                 Azzera filtri
-              </button>
+              </Button>
 
-              <button className="primary-button" type="submit">
+              <Button className="h-11 min-w-40 px-6" type="submit">
                 Applica filtri
-              </button>
+              </Button>
             </div>
 
           </form>
         </section>
 
-          <aside className="results-disclaimer" aria-label="Nota sui risultati">
+          <Alert
+            className="mt-5 border-primary/20 bg-primary/5 text-muted-foreground"
+            aria-label="Nota sui risultati"
+          >
             <Info aria-hidden="true" size={19} strokeWidth={2} />
 
-            <p>
+            <AlertDescription>
               Le informazioni mostrate potrebbero differire da quelle pubblicate sulle
               pagine ufficiali degli eventi. Verifica sempre date, orari e disponibilità
               prima dell’acquisto.
-            </p>
-          </aside>
+            </AlertDescription>
+          </Alert>
 
-        <section className="results-section" aria-labelledby="results-title">
-          <div className="results-header">
+        <section className="pt-8" aria-labelledby="results-title">
+          <div className="mb-6 flex items-end justify-between gap-5 max-sm:flex-col max-sm:items-start">
             <div>
-              <span className="results-header__label">Risultati</span>
+              <span className="mb-2 block text-xs font-bold tracking-[0.12em] text-primary uppercase">Risultati</span>
 
-              <h2 id="results-title">Eventi disponibili</h2>
+              <h2 id="results-title" className="text-[clamp(1.7rem,3vw,2.4rem)] font-bold tracking-tight">Eventi disponibili</h2>
             </div>
 
-            <div className="results-header__actions">
+            <div className="flex items-center gap-4 max-sm:w-full max-sm:flex-col max-sm:items-stretch">
               {pagination && viewMode !== "map" && (
-                <span className="results-count">
+                <span className="text-sm text-muted-foreground">
                   {pagination.totalElements} eventi
                 </span>
               )}
               <div
-                className="view-switcher"
+                className="inline-flex rounded-xl border bg-card p-1 max-sm:w-full"
                 aria-label="Modalità visualizzazione"
               >
-                <button
+                <Button
                   type="button"
+                  variant={viewMode === "grid" ? "default" : "ghost"}
                   className={
-                    viewMode === "grid"
-                      ? "view-switcher__button view-switcher__button--active"
-                      : "view-switcher__button"
+                    "h-9 flex-1 px-3"
                   }
                   onClick={() => setViewMode("grid")}
                   aria-pressed={viewMode === "grid"}
                 >
                   <Grid3X3 aria-hidden="true" size={18} strokeWidth={2} />
                   Griglia
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant={viewMode === "list" ? "default" : "ghost"}
                   className={
-                    viewMode === "list"
-                      ? "view-switcher__button view-switcher__button--active"
-                      : "view-switcher__button"
+                    "h-9 flex-1 px-3"
                   }
                   onClick={() => setViewMode("list")}
                   aria-pressed={viewMode === "list"}
                 >
                   <List aria-hidden="true" size={18} strokeWidth={2} />
                   Lista
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant={viewMode === "map" ? "default" : "ghost"}
                   className={
-                    viewMode === "map"
-                      ? "view-switcher__button view-switcher__button--active"
-                      : "view-switcher__button"
+                    "h-9 flex-1 px-3"
                   }
                   onClick={() => setViewMode("map")}
                   aria-pressed={viewMode === "map"}
                 >
                   <Map aria-hidden="true" size={18} strokeWidth={1.8} />
                   Mappa
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -527,25 +568,25 @@ export default function ConcertExplorer() {
               {!loading && !error && events.length > 0 && (
                 <>
                   {viewMode === "grid" ? (
-                    <div className="event-grid">
+                    <div className="grid grid-cols-3 gap-5.5 max-lg:grid-cols-2 max-sm:grid-cols-1">
                       {events.map((event) => (
                         <EventCard key={event.id} event={event} />
                       ))}
                     </div>
                   ) : (
-                    <div className="event-table-wrapper">
-                      <table className="event-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">Evento</th>
-                            <th scope="col">Categoria</th>
-                            <th scope="col">Luogo</th>
-                            <th scope="col">Data e ora</th>
-                            <th scope="col">Azioni</th>
-                          </tr>
-                        </thead>
+                    <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+                      <Table className="min-w-220">
+                        <TableHeader className="bg-muted">
+                          <TableRow>
+                            <TableHead scope="col">Evento</TableHead>
+                            <TableHead scope="col">Categoria</TableHead>
+                            <TableHead scope="col">Luogo</TableHead>
+                            <TableHead scope="col">Data e ora</TableHead>
+                            <TableHead scope="col">Azioni</TableHead>
+                          </TableRow>
+                        </TableHeader>
 
-                        <tbody>
+                        <TableBody>
                           {events.map((event) => {
                             const venue = event._embedded?.venues?.[0];
                             const eventTime = formatEventTime(
@@ -553,20 +594,20 @@ export default function ConcertExplorer() {
                             );
 
                             return (
-                              <tr key={event.id}>
-                                <td>
+                              <TableRow key={event.id}>
+                                <TableCell className="max-w-72 whitespace-normal">
                                   <strong>{event.name}</strong>
-                                </td>
-                                <td>{getEventGenre(event)}</td>
-                                <td>
-                                  <span className="event-table__venue">
+                                </TableCell>
+                                <TableCell>{getEventGenre(event)}</TableCell>
+                                <TableCell className="max-w-64 whitespace-normal text-muted-foreground">
+                                  <span>
                                     {venue?.name ?? "Luogo non disponibile"}
                                     {venue?.city?.name
                                       ? `, ${venue.city.name}`
                                       : ""}
                                   </span>
-                                </td>
-                                <td>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
                                   <time
                                     dateTime={`${event.dates.start.localDate}${
                                       eventTime ? `T${eventTime}` : ""
@@ -577,78 +618,77 @@ export default function ConcertExplorer() {
                                     )}
                                     {eventTime ? `, ore ${eventTime}` : ""}
                                   </time>
-                                </td>
-                                <td>
-                                  <a
-                                    className="event-table__link"
-                                    href={event.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label={`Apri i dettagli di ${event.name}`}
-                                  >
-                                    Dettagli
-                                    <ExternalLink
-                                      aria-hidden="true"
-                                      size={16}
-                                    />
-                                  </a>
-                                </td>
-                              </tr>
+                                </TableCell>
+                                <TableCell>
+                                  <Button asChild variant="outline" size="sm">
+                                    <a
+                                      href={event.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      aria-label={`Apri i dettagli di ${event.name}`}
+                                    >
+                                      Dettagli
+                                      <ExternalLink aria-hidden="true" />
+                                    </a>
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
                             );
                           })}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
 
-                  <nav className="pagination" aria-label="Paginazione eventi">
-                    <button
+                  <nav className="mt-9 flex items-center justify-center gap-5 max-sm:gap-2" aria-label="Paginazione eventi">
+                    <Button
+                      variant="outline"
                       type="button"
                       disabled={!hasPreviousPage}
                       onClick={() => goToPage(currentPage - 1)}
                     >
                       Precedente
-                    </button>
+                    </Button>
 
-                    <span>
+                    <span className="text-sm text-muted-foreground">
                       Pagina {currentPage + 1}
                       {pagination ? ` di ${pagination.totalPages}` : ""}
                     </span>
 
-                    <button
+                    <Button
+                      variant="outline"
                       type="button"
                       disabled={!hasNextPage}
                       onClick={() => goToPage(currentPage + 1)}
                     >
                       Successiva
-                    </button>
+                    </Button>
                   </nav>
                 </>
               )}
               {loading && (
-                <div className="status-message" role="status">
+                <div className="rounded-2xl border bg-card p-12 text-center text-muted-foreground" role="status">
                   Caricamento concerti...
                 </div>
               )}
 
               {!loading && error && (
-                <div
-                  className="status-message status-message--error"
-                  role="alert"
-                >
+                <Alert variant="destructive" className="p-6" role="alert">
                   <p>{error}</p>
 
-                  <button
+                  <Button
+                    variant="destructive"
+                    className="mt-3"
                     type="button"
                     onClick={() => void loadEvents(appliedFilters, currentPage)}
                   >
                     Riprova
-                  </button>
-                </div>
+                  </Button>
+                </Alert>
               )}
 
               {!loading && !error && events.length === 0 && (
-                <div className="status-message">
+                <div className="rounded-2xl border bg-card p-12 text-center text-muted-foreground">
                   Nessun concerto trovato con i filtri selezionati.
                 </div>
               )}
