@@ -212,12 +212,16 @@ export default function ConcertExplorer() {
   }, []);
 
   useEffect(() => {
-    // La richiesta iniziale sincronizza la UI con i filtri applicati.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadEvents(appliedFilters, currentPage);
+    const timeoutId = window.setTimeout(() => {
+      void loadEvents(appliedFilters, currentPage);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [appliedFilters, currentPage, loadEvents]);
 
-    useEffect(() => {
+  useEffect(() => {
     const controller = new AbortController();
 
     async function loadGenres() {

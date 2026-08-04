@@ -1,5 +1,4 @@
 import type { GenreOption, TicketmasterClassificationsResponse, TicketmasterEventsResponse, TicketmasterGenre, TicketmasterSuggestResponse } from "@/types/ticketmaster-dto";
-import { CITY_TO_REGION } from "@/data/italian-cities";
 
 const TICKETMASTER_BASE_URL =
   "https://app.ticketmaster.com/discovery/v2";

@@ -25,17 +25,21 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const initialTheme = getInitialTheme();
+    const timeoutId = window.setTimeout(() => {
+      const initialTheme = getInitialTheme();
 
-    // Il tema dipende da API disponibili solo dopo il mount nel browser.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTheme(initialTheme);
-    document.documentElement.dataset.theme = initialTheme;
-    document.documentElement.classList.toggle(
-      "dark",
-      initialTheme === "dark",
-    );
-    setMounted(true);
+      setTheme(initialTheme);
+      document.documentElement.dataset.theme = initialTheme;
+      document.documentElement.classList.toggle(
+        "dark",
+        initialTheme === "dark",
+      );
+      setMounted(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   function toggleTheme() {

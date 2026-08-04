@@ -1,4 +1,5 @@
 import { MapPin } from "lucide-react";
+import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { TicketmasterEvent } from "@/types/ticketmaster-dto";
+import type {
+  TicketmasterEvent,
+  TicketmasterImage,
+} from "@/types/ticketmaster-dto";
 
 interface EventCardProps {
   event: TicketmasterEvent;
@@ -17,7 +21,7 @@ interface EventCardProps {
 
 function selectEventImage(
   event: TicketmasterEvent,
-): string | null {
+): TicketmasterImage | null {
   const images = event.images ?? [];
 
   const preferredImage =
@@ -26,7 +30,7 @@ function selectEventImage(
       .sort((a, b) => b.width - a.width)[0] ??
     images.sort((a, b) => b.width - a.width)[0];
 
-  return preferredImage?.url ?? null;
+  return preferredImage ?? null;
 }
 
 function formatEventDate(date: string): string {
@@ -50,7 +54,7 @@ export default function EventCard({
   event,
 }: EventCardProps) {
   const venue = event._embedded?.venues?.[0];
-  const imageUrl = selectEventImage(event);
+  const eventImage = selectEventImage(event);
   const eventTime = formatEventTime(
     event.dates.start.localTime,
   );
@@ -64,11 +68,13 @@ export default function EventCard({
   return (
     <Card className="group gap-0 py-0 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative aspect-video overflow-hidden bg-muted">
-        {imageUrl ? (
-          <img
+        {eventImage ? (
+          <Image
             className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
-            src={imageUrl}
+            src={eventImage.url}
             alt=""
+            fill
+            sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
           />
         ) : (
           <div className="grid size-full place-items-center text-muted-foreground">
