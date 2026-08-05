@@ -23,11 +23,17 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const initialTheme = getInitialTheme();
+    const timeoutId = window.setTimeout(() => {
+      const initialTheme = getInitialTheme();
 
-    setTheme(initialTheme);
-    document.documentElement.dataset.theme = initialTheme;
-    setMounted(true);
+      setTheme(initialTheme);
+      document.documentElement.dataset.theme = initialTheme;
+      setMounted(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   function toggleTheme() {

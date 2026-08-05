@@ -1,4 +1,4 @@
-import { getItalianMusicEvents, getMusicGenres } from "@/lib/ticketmaster-service";
+import { getMusicGenres } from "@/lib/ticketmaster-service";
 
 
 export async function GET() {

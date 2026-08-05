@@ -38,14 +38,12 @@ export default function SearchAutocomplete({
 
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [suggestionsValue, setSuggestionsValue] = useState("");
 
   useEffect(() => {
     const normalizedValue = value.trim();
 
     if (normalizedValue.length < 2) {
-      setSuggestions({});
-      setIsOpen(false);
-      setLoading(false);
       return;
     }
 
@@ -76,6 +74,7 @@ export default function SearchAutocomplete({
           (await response.json()) as TicketmasterSuggestResponse;
 
         setSuggestions(data);
+        setSuggestionsValue(normalizedValue);
         setIsOpen(true);
       } catch (error) {
         if (
@@ -114,8 +113,15 @@ export default function SearchAutocomplete({
   const venues =
     suggestions._embedded?.venues ?? [];
 
+  const normalizedValue = value.trim();
+  const showSuggestions =
+    normalizedValue.length >= 2 &&
+    suggestionsValue === normalizedValue &&
+    isOpen;
+
   function closeSuggestions() {
     setSuggestions({});
+    setSuggestionsValue("");
     setIsOpen(false);
   }
 
@@ -151,7 +157,8 @@ export default function SearchAutocomplete({
         placeholder="Cerca artista, evento o luogo"
         autoComplete="off"
         aria-label="Cerca concerti"
-        aria-expanded={isOpen}
+        role="combobox"
+        aria-expanded={showSuggestions}
         aria-controls="search-suggestions"
         onChange={(event) => {
           onChange(event.target.value);
@@ -163,13 +170,13 @@ export default function SearchAutocomplete({
         }}
       />
 
-      {loading && (
+      {normalizedValue.length >= 2 && loading && (
         <span className="search-autocomplete__loading">
           Ricerca...
         </span>
       )}
 
-      {isOpen && !loading && (
+      {showSuggestions && !loading && (
         <div
           id="search-suggestions"
           className="search-autocomplete__results"

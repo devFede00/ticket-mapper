@@ -190,10 +190,16 @@ export default function ConcertExplorer() {
   }, []);
 
   useEffect(() => {
-    void loadEvents(appliedFilters, currentPage);
+    const timeoutId = window.setTimeout(() => {
+      void loadEvents(appliedFilters, currentPage);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [appliedFilters, currentPage, loadEvents]);
 
-    useEffect(() => {
+  useEffect(() => {
     const controller = new AbortController();
 
     async function loadGenres() {
@@ -640,7 +646,11 @@ export default function ConcertExplorer() {
 
                   <button
                     type="button"
-                    onClick={() => void loadEvents(appliedFilters, currentPage)}
+                    onClick={() => {
+                      setLoading(true);
+                      setError(null);
+                      void loadEvents(appliedFilters, currentPage);
+                    }}
                   >
                     Riprova
                   </button>

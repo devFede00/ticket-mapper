@@ -14,6 +14,11 @@
   --header-background: #17191d;
   --header-text: #ffffff;
   --shadow: 0 14px 40px rgba(25, 30, 40, 0.08);
+  --map-region-border: #495c84;
+  --map-region-empty: transparent;
+  --map-region-events: #82b8f4;
+  --map-region-selected: var(--map-region-border);
+  --map-region-hover-filter: #3676cf;
 }
 
 :root[data-theme="dark"] {
@@ -32,6 +37,11 @@
   --header-background: #08090b;
   --header-text: #ffffff;
   --shadow: 0 16px 45px rgba(0, 0, 0, 0.28);
+  --map-region-border: #8273f6;
+  --map-region-empty: transparent;
+  --map-region-events: #2f3d69;
+  --map-region-selected: var(--map-region-border);
+  --map-region-hover-filter: #798cc7;
 }
 
 * {
@@ -908,30 +918,28 @@ input:focus-visible {
 }
 
 .italy-map__region {
-  fill: var(--surface-secondary);
-  stroke: var(--background);
+  fill: var(--map-region-empty);
+  stroke: var(--map-region-border);
   stroke-width: 1.5;
   cursor: pointer;
   transition:
     fill 150ms ease,
-    opacity 150ms ease,
-    stroke 150ms ease;
-}
-
-.italy-map__region:hover,
-.italy-map__region:focus {
-  fill: color-mix(in srgb, var(--accent) 35%, var(--surface-secondary));
-  outline: none;
+    filter 150ms ease,
+    stroke-width 150ms ease;
 }
 
 .italy-map__region--has-events {
-  fill: color-mix(in srgb, var(--accent) 62%, var(--surface));
+  fill: var(--map-region-events);
 }
 
 .italy-map__region--selected {
-  fill: var(--accent);
-  stroke: var(--text-primary);
+  fill: var(--map-region-selected);
   stroke-width: 2.5;
+}
+
+.italy-map__region:hover{
+  fill: var(--map-region-hover-filter);
+  outline: none;
 }
 
 .region-panel {
