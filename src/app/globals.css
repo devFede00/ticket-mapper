@@ -1195,3 +1195,24 @@ input:focus-visible {
   cursor: not-allowed;
   opacity: 0.65;
 }
+
+.italy-map-wrapper,
+.region-panel {
+  min-width: 0;
+}
+
+.region-event-list,
+.region-event-list__item {
+  width: 100%;
+  min-width: 0;
+}
+
+.region-event-list__content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.region-event-list__content h4,
+.region-event-list__content p {
+  overflow-wrap: anywhere;
+}

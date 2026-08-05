@@ -1,21 +1,18 @@
 "use client";
 
 import ItalyMapData from "@svg-maps/italy";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, MapPinOff, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+  getRegionFromCity,
+  normalizeItalianRegion,
+} from "@/lib/italian-regions";
 
 import type {
   EventsApiResponse,
   TicketmasterEvent,
 } from "@/types/ticketmaster-dto";
-
-import {
-  normalizeItalianRegion,getRegionFromCity} from "@/lib/italian-regions";
 
 interface Filters {
   keyword: string;
@@ -39,6 +36,16 @@ interface SvgMap {
   viewBox: string;
   locations: SvgLocation[];
 }
+
+type MapSelection =
+  | {
+      type: "region";
+      region: string;
+    }
+  | {
+      type: "unresolved";
+    }
+  | null;
 
 const italyMap = ItalyMapData as SvgMap;
 
@@ -80,9 +87,7 @@ function getEventRegion(
     return directRegion;
   }
 
-  return getRegionFromCity(
-    venue?.city?.name,
-  );
+  return getRegionFromCity(venue?.city?.name);
 }
 
 function formatCompactDate(date: string): string {
@@ -96,16 +101,16 @@ function formatCompactDate(date: string): string {
 export default function ItalyEventsMap({
   filters,
 }: ItalyEventsMapProps) {
-  const [events, setEvents] = useState<TicketmasterEvent[]>([]);
+  const [events, setEvents] = useState<TicketmasterEvent[]>(
+    [],
+  );
 
-  const [selectedRegion, setSelectedRegion] =
-    useState<string | null>(null);
+  const [selection, setSelection] =
+    useState<MapSelection>(null);
 
   const [loading, setLoading] = useState(true);
 
-  const [error, setError] = useState<string | null>(
-    null,
-  );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -113,21 +118,17 @@ export default function ItalyEventsMap({
     async function loadMapEvents() {
       setLoading(true);
       setError(null);
+      setSelection(null);
 
       try {
         const query = buildMapQuery(filters);
 
-        const response = await fetch(
-          `/api/events?${query}`,
-          {
-            signal: controller.signal,
-          },
-        );
+        const response = await fetch(`/api/events?${query}`, {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
-          throw new Error(
-            `Errore HTTP ${response.status}`,
-          );
+          throw new Error(`Errore HTTP ${response.status}`);
         }
 
         const data =
@@ -162,13 +163,19 @@ export default function ItalyEventsMap({
     };
   }, [filters]);
 
-  const eventsByRegion = useMemo(() => {
-    const grouped = new Map<string,TicketmasterEvent[]>();
+  const { eventsByRegion, unresolvedEvents } = useMemo(() => {
+    const grouped = new Map<
+      string,
+      TicketmasterEvent[]
+    >();
+
+    const unresolved: TicketmasterEvent[] = [];
 
     for (const event of events) {
       const region = getEventRegion(event);
 
       if (!region) {
+        unresolved.push(event);
         continue;
       }
 
@@ -178,10 +185,26 @@ export default function ItalyEventsMap({
       grouped.set(region, regionEvents);
     }
 
-    return grouped;
+    return {
+      eventsByRegion: grouped,
+      unresolvedEvents: unresolved,
+    };
   }, [events]);
 
-  const selectedRegionEvents = selectedRegion !== null ? eventsByRegion.get(selectedRegion) ?? [] : [];
+  const selectedEvents = useMemo(() => {
+    if (!selection) {
+      return [];
+    }
+
+    if (selection.type === "unresolved") {
+      return unresolvedEvents;
+    }
+
+    return eventsByRegion.get(selection.region) ?? [];
+  }, [eventsByRegion, selection, unresolvedEvents]);
+
+  const mappedEventsCount =
+    events.length - unresolvedEvents.length;
 
   function handleRegionClick(regionName: string) {
     const normalizedRegion =
@@ -191,7 +214,16 @@ export default function ItalyEventsMap({
       return;
     }
 
-    setSelectedRegion(normalizedRegion);
+    setSelection({
+      type: "region",
+      region: normalizedRegion,
+    });
+  }
+
+  function handleUnresolvedClick() {
+    setSelection({
+      type: "unresolved",
+    });
   }
 
   if (loading) {
@@ -224,9 +256,7 @@ export default function ItalyEventsMap({
             Distribuzione geografica
           </span>
 
-          <h2 id="map-title">
-            Eventi per regione
-          </h2>
+          <h2 id="map-title">Eventi per regione</h2>
         </div>
 
         <p>
@@ -253,7 +283,8 @@ export default function ItalyEventsMap({
                 : 0;
 
               const isSelected =
-                normalizedRegion === selectedRegion;
+                selection?.type === "region" &&
+                normalizedRegion === selection.region;
 
               return (
                 <path
@@ -282,10 +313,7 @@ export default function ItalyEventsMap({
                       event.key === " "
                     ) {
                       event.preventDefault();
-
-                      handleRegionClick(
-                        location.name,
-                      );
+                      handleRegionClick(location.name);
                     }
                   }}
                 >
@@ -298,138 +326,198 @@ export default function ItalyEventsMap({
           </svg>
         </div>
 
-                  <aside
-              className="region-panel"
-              aria-live="polite"
-            >
-              {selectedRegion === null ? (
-                <>
-                  <h3>Seleziona una regione</h3>
+        <aside
+          className="region-panel"
+          aria-live="polite"
+        >
+          {selection === null ? (
+            <>
+              <h3>Seleziona una regione</h3>
 
-                  <p>
-                    Seleziona una regione dalla mappa oppure
-                    dall&apos;elenco seguente.
-                  </p>
+              <p>
+                Seleziona una regione dalla mappa oppure
+                dall&apos;elenco seguente.
+              </p>
 
-                  <ul className="region-summary">
-                    {[...eventsByRegion.entries()]
-                      .sort((first, second) =>
-                        first[0].localeCompare(
-                          second[0],
-                          "it",
-                        ),
-                      )
-                      .map(([region, regionEvents]) => (
-                        <li key={region}>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setSelectedRegion(region)
-                            }
-                          >
-                            <span>{region}</span>
+              <ul className="region-summary">
+                {[...eventsByRegion.entries()]
+                  .sort((first, second) =>
+                    first[0].localeCompare(
+                      second[0],
+                      "it",
+                    ),
+                  )
+                  .map(([region, regionEvents]) => (
+                    <li key={region}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelection({
+                            type: "region",
+                            region,
+                          })
+                        }
+                      >
+                        <span>{region}</span>
 
-                            <strong>
-                              {regionEvents.length}
-                            </strong>
-                          </button>
-                        </li>
-                      ))}
-                  </ul>
-                </>
-              ) : (
-                <>
-                  <div className="region-panel__title">
-                    <div>
-                      <span>Regione selezionata</span>
-                      <h3>{selectedRegion}</h3>
-                    </div>
+                        <strong>
+                          {regionEvents.length}
+                        </strong>
+                      </button>
+                    </li>
+                  ))}
 
+                {unresolvedEvents.length > 0 && (
+                  <li>
                     <button
                       type="button"
-                      onClick={() =>
-                        setSelectedRegion(null)
-                      }
-                      aria-label="Deseleziona regione"
+                      onClick={handleUnresolvedClick}
                     >
-                      <X
-                        aria-hidden="true"
-                        size={20}
-                        strokeWidth={2}
-                      />
+                      <span>
+                        <MapPinOff
+                          aria-hidden="true"
+                          size={16}
+                          strokeWidth={1.8}
+                        />{" "}
+                        Località non determinate
+                      </span>
+
+                      <strong>
+                        {unresolvedEvents.length}
+                      </strong>
                     </button>
-                  </div>
+                  </li>
+                )}
+              </ul>
+            </>
+          ) : (
+            <>
+              <div className="region-panel__title">
+                <div>
+                  <span>
+                    {selection.type === "region"
+                      ? "Regione selezionata"
+                      : "Copertura geografica"}
+                  </span>
 
-                  <p className="region-panel__count">
-                    {selectedRegionEvents.length}{" "}
-                    {selectedRegionEvents.length === 1
-                      ? "evento disponibile"
-                      : "eventi disponibili"}
-                  </p>
+                  <h3>
+                    {selection.type === "region"
+                      ? selection.region
+                      : "Località non determinate"}
+                  </h3>
+                </div>
 
-                  {selectedRegionEvents.length === 0 ? (
-                    <div className="region-panel__empty">
-                      Nessun evento disponibile in{" "}
-                      {selectedRegion}.
-                    </div>
-                  ) : (
-                    <ul className="region-event-list">
-                      {selectedRegionEvents.map((event) => {
-                        const venue =
-                          event._embedded?.venues?.[0];
+                <button
+                  type="button"
+                  onClick={() => setSelection(null)}
+                  aria-label="Chiudi selezione"
+                >
+                  <X
+                    aria-hidden="true"
+                    size={20}
+                    strokeWidth={2}
+                  />
+                </button>
+              </div>
 
-                        return (
-                          <li
-                            key={event.id}
-                            className="region-event-list__item"
-                          >
-                            <div className="region-event-list__content">
-                              <time
-                                dateTime={
-                                  event.dates.start.localDate
-                                }
-                              >
-                                {formatCompactDate(
-                                  event.dates.start.localDate,
-                                )}
-                              </time>
-
-                              <h4>{event.name}</h4>
-
-                              <p>
-                                {venue?.name ??
-                                  "Luogo non disponibile"}
-
-                                {venue?.city?.name
-                                  ? `, ${venue.city.name}`
-                                  : ""}
-                              </p>
-                            </div>
-
-                            <a
-                              href={event.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              aria-label={`Apri dettagli di ${event.name}`}
-                            >
-                              <ExternalLink
-                                aria-hidden="true"
-                                size={18}
-                                strokeWidth={1.8}
-                              />
-                            </a>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </>
+              {selection.type === "unresolved" && (
+                <p>
+                  Questi eventi sono stati recuperati
+                  correttamente, ma i dati disponibili non
+                  permettono ancora di associarli a una
+                  regione.
+                </p>
               )}
-            </aside>
+
+              <p className="region-panel__count">
+                {selectedEvents.length}{" "}
+                {selectedEvents.length === 1
+                  ? "evento disponibile"
+                  : "eventi disponibili"}
+              </p>
+
+              {selectedEvents.length === 0 ? (
+                <div className="region-panel__empty">
+                  {selection.type === "region"
+                    ? `Nessun evento disponibile in ${selection.region}.`
+                    : "Non ci sono eventi con località non determinata."}
+                </div>
+              ) : (
+                <ul className="region-event-list">
+                  {selectedEvents.map((event) => {
+                    const venue =
+                      event._embedded?.venues?.[0];
+
+                    return (
+                      <li
+                        key={event.id}
+                        className="region-event-list__item"
+                      >
+                        <div className="region-event-list__content">
+                          <time
+                            dateTime={
+                              event.dates.start.localDate
+                            }
+                          >
+                            {formatCompactDate(
+                              event.dates.start.localDate,
+                            )}
+                          </time>
+
+                          <h4>{event.name}</h4>
+
+                          <p>
+                            {venue?.name ??
+                              "Luogo non disponibile"}
+
+                            {venue?.city?.name
+                              ? `, ${venue.city.name}`
+                              : ""}
+
+                            {selection.type ===
+                              "unresolved" &&
+                            venue?.state?.name
+                              ? ` — ${venue.state.name}`
+                              : ""}
+                          </p>
+                        </div>
+
+                        <a
+                          href={event.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Apri dettagli di ${event.name}`}
+                        >
+                          <ExternalLink
+                            aria-hidden="true"
+                            size={18}
+                            strokeWidth={1.8}
+                          />
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
+          )}
+        </aside>
       </div>
 
       <p className="map-coverage-note">
-        La mappa considera al massimo i primi 200
+        {events.length}{" "}
+        {events.length === 1
+          ? "evento analizzato"
+          : "eventi analizzati"}
+        : {mappedEventsCount}{" "}
+        {mappedEventsCount === 1
+          ? "associato"
+          : "associati"}{" "}
+        a una regione
+        {unresolvedEvents.length > 0
+          ? `, ${unresolvedEvents.length} con località non determinata`
+          : ""}
+        . La mappa considera al massimo i primi 200
         risultati corrispondenti ai filtri selezionati.
       </p>
     </section>
