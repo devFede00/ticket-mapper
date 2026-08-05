@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-
+import Image from "next/image";
 import {
   EventsApiResponse,
   GenreOption,
@@ -292,8 +292,13 @@ export default function ConcertExplorer() {
           <div>
             <span className="site-header__eyebrow">Live music finder</span>
 
+          <div className="site-header__title">
+
             <h1>Concerti Italia</h1>
 
+            <span className="site-header__logo" aria-hidden="true" />
+
+          </div>
             <p>
               Cerca concerti, artisti e spettacoli musicali disponibili in
               Italia.

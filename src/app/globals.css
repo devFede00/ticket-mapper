@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-
+  --site-logo: url("../../public/concerti-italia-logo-dark-transparent.png");
   --background: #f4f5f7;
   --surface: #ffffff;
   --surface-secondary: #f8f9fb;
@@ -23,7 +23,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-
+  --site-logo: url("../../public/concerti-italia-logo-dark-transparent.png");
   --background: #101114;
   --surface: #191b20;
   --surface-secondary: #202329;
@@ -116,6 +116,22 @@ input:focus-visible {
   font-size: clamp(2.4rem, 7vw, 5rem);
   line-height: 0.95;
   letter-spacing: -0.055em;
+}
+
+.site-header__title {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+}
+
+.site-header__logo {
+  width: 80px;
+  height: 80px;
+  flex: 0 0 auto;
+  background-image: var(--site-logo);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .site-header p {
@@ -1215,4 +1231,14 @@ input:focus-visible {
 .region-event-list__content h4,
 .region-event-list__content p {
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .site-header__title {
+    gap: 12px;
+  }
+
+  .site-header__logo {
+    width: 52px;
+  }
 }
