@@ -11,6 +11,8 @@ import type {
 
 interface SearchAutocompleteProps {
   value: string;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   onChange: (value: string) => void;
 
   onAttractionSelect: (
@@ -29,6 +31,8 @@ interface SearchAutocompleteProps {
 export default function SearchAutocomplete({
   value,
   onChange,
+  isOpen,
+  onOpenChange,
   onAttractionSelect,
   onEventSelect,
   onVenueSelect,
@@ -37,7 +41,6 @@ export default function SearchAutocomplete({
     useState<TicketmasterSuggestResponse>({});
 
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [suggestionsValue, setSuggestionsValue] = useState("");
 
   useEffect(() => {
@@ -75,7 +78,6 @@ export default function SearchAutocomplete({
 
         setSuggestions(data);
         setSuggestionsValue(normalizedValue);
-        setIsOpen(true);
       } catch (error) {
         if (
           error instanceof DOMException &&
@@ -90,7 +92,7 @@ export default function SearchAutocomplete({
         );
 
         setSuggestions({});
-        setIsOpen(false);
+        onOpenChange(false);
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -122,7 +124,7 @@ export default function SearchAutocomplete({
   function closeSuggestions() {
     setSuggestions({});
     setSuggestionsValue("");
-    setIsOpen(false);
+    onOpenChange(false);
   }
 
   function handleAttractionSelect(
@@ -150,7 +152,19 @@ export default function SearchAutocomplete({
   }
 
   return (
-    <div className="search-autocomplete">
+    <div
+      className="search-autocomplete"
+      onBlur={(event) => {
+        const nextElement = event.relatedTarget;
+
+        if (
+          !(nextElement instanceof Node) ||
+          !event.currentTarget.contains(nextElement)
+        ) {
+          closeSuggestions();
+        }
+      }}
+    >
       <input
         type="search"
         value={value}
@@ -162,6 +176,7 @@ export default function SearchAutocomplete({
         aria-controls="search-suggestions"
         onChange={(event) => {
           onChange(event.target.value);
+          onOpenChange(true);
         }}
         onKeyDown={(event) => {
           if (event.key === "Escape") {

@@ -106,6 +106,8 @@ export default function ConcertExplorer() {
   const [appliedFilters, setAppliedFilters] =
     useState<Filters>(INITIAL_FILTERS);
 
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+
   const [events, setEvents] = useState<TicketmasterEvent[]>([]);
 
   const [pagination, setPagination] = useState<TicketmasterPage | null>(null);
@@ -253,6 +255,7 @@ export default function ConcertExplorer() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    setSuggestionsOpen(false);
     setCurrentPage(0);
     setAppliedFilters(formFilters);
   }
@@ -294,7 +297,7 @@ export default function ConcertExplorer() {
 
           <div className="site-header__title">
 
-            <h1>Concerti Italia</h1>
+            <h1>Ticket Mapper</h1>
 
             <span className="site-header__logo" aria-hidden="true" />
 
@@ -321,7 +324,9 @@ export default function ConcertExplorer() {
 
               <SearchAutocomplete
                 value={formFilters.keyword}
-                onChange={(value) => {
+                isOpen={suggestionsOpen}
+                onOpenChange={setSuggestionsOpen}
+                              onChange={(value) => {
                   setFormFilters((current) => ({
                     ...current,
                     keyword: value,
@@ -357,12 +362,6 @@ export default function ConcertExplorer() {
                 }}
               />
 
-              <button
-                className="main-search__submit"
-                type="submit"
-              >
-                Cerca
-              </button> 
             </div>
 
             <div className="filters">
