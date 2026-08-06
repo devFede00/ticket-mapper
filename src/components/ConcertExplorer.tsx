@@ -16,7 +16,7 @@ import EventCard from "./EventCard";
 import ThemeToggle from "./ThemeToggle";
 import SearchAutocomplete from "./SearchSuggestions";
 
-import { ExternalLink, Grid3X3, Info, List, Map, Search } from "lucide-react";
+import { ExternalLink, Grid3X3, Info, LibraryBig, List, Map, Search } from "lucide-react";
 interface Filters {
   keyword: string;
   city: string;
@@ -105,6 +105,8 @@ export default function ConcertExplorer() {
 
   const [appliedFilters, setAppliedFilters] =
     useState<Filters>(INITIAL_FILTERS);
+
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
 
   const [events, setEvents] = useState<TicketmasterEvent[]>([]);
 
@@ -253,6 +255,7 @@ export default function ConcertExplorer() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    setSuggestionsOpen(false);
     setCurrentPage(0);
     setAppliedFilters(formFilters);
   }
@@ -294,7 +297,7 @@ export default function ConcertExplorer() {
 
           <div className="site-header__title">
 
-            <h1>Concerti Italia</h1>
+            <h1>Ticket Mapper</h1>
 
             <span className="site-header__logo" aria-hidden="true" />
 
@@ -321,7 +324,9 @@ export default function ConcertExplorer() {
 
               <SearchAutocomplete
                 value={formFilters.keyword}
-                onChange={(value) => {
+                isOpen={suggestionsOpen}
+                onOpenChange={setSuggestionsOpen}
+                              onChange={(value) => {
                   setFormFilters((current) => ({
                     ...current,
                     keyword: value,
@@ -357,12 +362,6 @@ export default function ConcertExplorer() {
                 }}
               />
 
-              <button
-                className="main-search__submit"
-                type="submit"
-              >
-                Cerca
-              </button> 
             </div>
 
             <div className="filters">
@@ -445,17 +444,32 @@ export default function ConcertExplorer() {
             </div>
 
             <div className="filter-actions">
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={handleReset}
-              >
-                Azzera filtri
-              </button>
+              <p className="ticket-sources">
+                <LibraryBig aria-hidden="true" size={19} strokeWidth={2} />
+                Dati sui biglietti forniti da{" "}
+                <a
+                  href="https://www.ticketmaster.it"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Ticketmaster
+                  <ExternalLink aria-hidden="true" size={13} strokeWidth={2} />
+                </a>
+              </p>
 
-              <button className="primary-button" type="submit">
-                Applica filtri
-              </button>
+              <div className="filter-actions__buttons">
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={handleReset}
+                >
+                  Azzera filtri
+                </button>
+
+                <button className="primary-button" type="submit">
+                  Applica filtri
+                </button>
+              </div>
             </div>
 
           </form>
@@ -463,7 +477,7 @@ export default function ConcertExplorer() {
 
           <aside className="results-disclaimer" aria-label="Nota sui risultati">
             <Info aria-hidden="true" size={19} strokeWidth={2} />
-
+                  
             <p>
               Le informazioni mostrate potrebbero differire da quelle pubblicate sulle
               pagine ufficiali degli eventi. Verifica sempre date, orari e disponibilità
