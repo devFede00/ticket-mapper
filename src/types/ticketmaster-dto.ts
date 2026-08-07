@@ -79,6 +79,8 @@ export interface TicketmasterEvent {
     };
   };
 
+  place?: TicketmasterVenue;
+
   _embedded?: {
     venues?: TicketmasterVenue[];
   };
@@ -104,7 +106,7 @@ export interface TicketmasterEventsResponse {
  * ai componenti React.
  */
 export interface EventsApiResponse {
-  events: TicketmasterEvent[];
+  events: MappedTicketmasterEvent[];
   pagination: TicketmasterPage | null;
 }
 
@@ -188,4 +190,18 @@ export interface GenreOption {
 
 export interface GenresApiResponse {
   genres: GenreOption[];
+}
+
+
+//Informazioni per mappature eventi
+export type RegionResolutionSource =
+  | "coordinates"
+  | "state"
+  | "city"
+  | "unresolved";
+
+export interface MappedTicketmasterEvent
+  extends TicketmasterEvent {
+  resolvedRegion: string | null;
+  regionResolutionSource: RegionResolutionSource;
 }

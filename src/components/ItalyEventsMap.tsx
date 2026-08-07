@@ -1,22 +1,24 @@
 "use client";
 
 import ItalyMapData from "@svg-maps/italy";
-import { ExternalLink, MapPinOff, X } from "lucide-react";
+import { ExternalLink, MapPinOff, Minus, Music, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { CalendarDays } from "lucide-react";
+
 import {
-  getRegionFromCity,
   normalizeItalianRegion,
 } from "@/lib/italian-regions";
 
 import type {
   EventsApiResponse,
-  TicketmasterEvent,
+  MappedTicketmasterEvent,
 } from "@/types/ticketmaster-dto";
 
 interface Filters {
   keyword: string;
   city: string;
+  genreId: string;
   startDate: string;
   endDate: string;
 }
@@ -60,6 +62,10 @@ function buildMapQuery(filters: Filters): string {
     params.set("city", filters.city.trim());
   }
 
+  if (filters.genreId.trim()) {
+    params.set("genreId", filters.genreId.trim());
+  }
+
   if (filters.startDate) {
     params.set("startDate", filters.startDate);
   }
@@ -74,22 +80,6 @@ function buildMapQuery(filters: Filters): string {
   return params.toString();
 }
 
-function getEventRegion(
-  event: TicketmasterEvent,
-): string | null {
-  const venue = event._embedded?.venues?.[0];
-
-  const directRegion = normalizeItalianRegion(
-    venue?.state?.name ?? venue?.state?.stateCode,
-  );
-
-  if (directRegion) {
-    return directRegion;
-  }
-
-  return getRegionFromCity(venue?.city?.name);
-}
-
 function formatCompactDate(date: string): string {
   return new Intl.DateTimeFormat("it-IT", {
     day: "2-digit",
@@ -98,12 +88,22 @@ function formatCompactDate(date: string): string {
   }).format(new Date(`${date}T12:00:00`));
 }
 
+function getEventGenre(
+  event: MappedTicketmasterEvent,
+): string {
+  return (
+    event.classifications?.find(
+      (classification) => classification.primary,
+    )?.genre?.name ??
+    event.classifications?.[0]?.genre?.name ??
+    "Genere non disponibile"
+  );
+}
+
 export default function ItalyEventsMap({
   filters,
 }: ItalyEventsMapProps) {
-  const [events, setEvents] = useState<TicketmasterEvent[]>(
-    [],
-  );
+  const [events, setEvents] = useState<MappedTicketmasterEvent[]>([]);
 
   const [selection, setSelection] =
     useState<MapSelection>(null);
@@ -133,6 +133,50 @@ export default function ItalyEventsMap({
 
         const data =
           (await response.json()) as EventsApiResponse;
+
+        //log di controllo estrazione dati:
+        const eventsByResolutionSource = Object.groupBy(
+          data.events,
+          (event) => event.regionResolutionSource,
+        );
+
+        for (const [
+          source,
+          sourceEvents,
+        ] of Object.entries(eventsByResolutionSource)) {
+          console.groupCollapsed(
+            `[Mappa] ${source}: ${sourceEvents?.length ?? 0} eventi`,
+          );
+
+          console.table(
+            sourceEvents?.map((event) => {
+              const venue = event._embedded?.venues?.[0];
+              const location =
+                venue?.location ?? event.place?.location;
+
+              return {
+                evento: event.name,
+                regione: event.resolvedRegion ?? "Non determinata",
+                venue:
+                  venue?.name ??
+                  event.place?.name ??
+                  "Non disponibile",
+                città:
+                  venue?.city?.name ??
+                  event.place?.city?.name ??
+                  "Non disponibile",
+                latitudine:
+                  location?.latitude ?? "Non disponibile",
+                longitudine:
+                  location?.longitude ?? "Non disponibile",
+                metodo: event.regionResolutionSource,
+              };
+            }),
+          );
+
+          console.groupEnd();
+        }
+        //---------------------------------
 
         setEvents(data.events);
       } catch (requestError) {
@@ -166,13 +210,13 @@ export default function ItalyEventsMap({
   const { eventsByRegion, unresolvedEvents } = useMemo(() => {
     const grouped = new Map<
       string,
-      TicketmasterEvent[]
+      MappedTicketmasterEvent[]
     >();
 
-    const unresolved: TicketmasterEvent[] = [];
+    const unresolved: MappedTicketmasterEvent[] = [];
 
     for (const event of events) {
-      const region = getEventRegion(event);
+      const region = event.resolvedRegion;
 
       if (!region) {
         unresolved.push(event);
@@ -258,11 +302,6 @@ export default function ItalyEventsMap({
 
           <h2 id="map-title">Eventi per regione</h2>
         </div>
-
-        <p>
-          Seleziona una regione per visualizzare gli
-          eventi disponibili.
-        </p>
       </div>
 
       <div className="map-layout">
@@ -340,6 +379,28 @@ export default function ItalyEventsMap({
               </p>
 
               <ul className="region-summary">
+
+                {unresolvedEvents.length > 0 && (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={handleUnresolvedClick}
+                    >
+                      <span>
+                        <MapPinOff
+                          aria-hidden="true"
+                          size={16}
+                          strokeWidth={1.8}
+                        />{" "}
+                        Località non determinate
+                      </span>
+
+                      <strong>
+                        {unresolvedEvents.length}
+                      </strong>
+                    </button>
+                  </li>
+                )}
                 {[...eventsByRegion.entries()]
                   .sort((first, second) =>
                     first[0].localeCompare(
@@ -366,28 +427,6 @@ export default function ItalyEventsMap({
                       </button>
                     </li>
                   ))}
-
-                {unresolvedEvents.length > 0 && (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={handleUnresolvedClick}
-                    >
-                      <span>
-                        <MapPinOff
-                          aria-hidden="true"
-                          size={16}
-                          strokeWidth={1.8}
-                        />{" "}
-                        Località non determinate
-                      </span>
-
-                      <strong>
-                        {unresolvedEvents.length}
-                      </strong>
-                    </button>
-                  </li>
-                )}
               </ul>
             </>
           ) : (
@@ -454,15 +493,27 @@ export default function ItalyEventsMap({
                         className="region-event-list__item"
                       >
                         <div className="region-event-list__content">
-                          <time
-                            dateTime={
-                              event.dates.start.localDate
-                            }
-                          >
-                            {formatCompactDate(
-                              event.dates.start.localDate,
-                            )}
-                          </time>
+                          <div className="region-event-list__metadata">
+                            <CalendarDays aria-hidden="true" size={19} strokeWidth={2} />
+                            <time dateTime={event.dates.start.localDate}>
+                              {formatCompactDate(
+                                event.dates.start.localDate,
+                              )}
+                            </time>
+
+                            <span
+                              className="region-event-list__separator"
+                              aria-hidden="true"
+                            >
+                              <Minus aria-hidden="true" size={19} strokeWidth={2} />
+                            </span>
+
+                            <Music aria-hidden="true" size={19} strokeWidth={2} />
+
+                            <span className="region-event-list__genre">
+                              {getEventGenre(event)}
+                            </span>
+                          </div>
 
                           <h4>{event.name}</h4>
 
@@ -480,6 +531,7 @@ export default function ItalyEventsMap({
                               ? ` — ${venue.state.name}`
                               : ""}
                           </p>
+
                         </div>
 
                         <a

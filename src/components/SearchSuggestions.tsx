@@ -104,7 +104,7 @@ export default function SearchAutocomplete({
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [value]);
+  }, [value, onOpenChange]);
 
   const attractions =
     suggestions._embedded?.attractions ?? [];

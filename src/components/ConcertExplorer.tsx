@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import {
   EventsApiResponse,
   GenreOption,
@@ -156,6 +155,7 @@ export default function ConcertExplorer() {
 
       const data = (await response.json()) as EventsApiResponse;
 
+      /*
       console.log("Risposta completa:", data);
       console.log("Numero eventi ricevuti:", data.events.length);
       console.log("Paginazione:", data.pagination);
@@ -177,7 +177,7 @@ export default function ConcertExplorer() {
       );
 
       console.groupEnd();
-
+      */
       setEvents(data.events);
       setPagination(data.pagination);
     } catch (requestError) {

@@ -108,28 +108,6 @@ export async function getItalianMusicEvents(
   const data =
   (await response.json()) as TicketmasterEventsResponse;
 
- console.log(
-  "[Ticketmaster] Risposta completa:",
-  data,
-);
-
-console.log(
-  "[Ticketmaster] Primo evento:",
-  data._embedded?.events?.[0],
-);
-
-console.log(
-  "[Ticketmaster] Prima venue:",
-  data._embedded?.events?.[0]
-    ?._embedded?.venues?.[0],
-);
-
-console.log(
-  "[Ticketmaster] Regione prima venue:",
-  data._embedded?.events?.[0]
-    ?._embedded?.venues?.[0]?.state,
-);
-
 return data;
 }
 
