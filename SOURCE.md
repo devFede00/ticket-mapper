@@ -29,6 +29,12 @@
 - API Explorer:
   https://developer.ticketmaster.com/api-explorer/v2/
 
+### Github geojson-italy
+
+- Confini regionali: geojson-italy, derivato dai dati ISTAT
+- https://github.com/guglielmo/geojson-italy,
+  licenza CC BY 4.0.
+
 ## Decisioni tecniche
 
 - Framework: Next.js.
@@ -39,14 +45,3 @@
 - Fonte eventi: Ticketmaster Discovery API.
 - API key: solo server-side.
 - Cache: temporanea tramite Next.js/CDN.
-
-## Prossimi passi
-
-1. Registrare un account Ticketmaster Developer.
-2. Ottenere una Consumer Key.
-3. Configurare `.env.local`.
-4. Creare il client server-side Ticketmaster.
-5. Creare `GET /api/events`.
-6. Mostrare una prima lista di concerti italiani.
-7. Aggiungere filtri.
-8. Integrare la mappa.

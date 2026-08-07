@@ -1,4 +1,5 @@
 import { getItalianMusicEvents } from "@/lib/ticketmaster-service";
+import { resolveEventRegion } from "@/lib/event-region";
 
 function parseSize(value: string | null): number {
   if (!value) {
@@ -42,10 +43,22 @@ export async function GET(request: Request) {
       size: parseSize(searchParams.get("size")),
     });
 
-    return Response.json({
-      events: data._embedded?.events ?? [],
-      pagination: data.page ?? null,
-    });
+    const events = (data._embedded?.events ?? []).map(
+      (event) => {
+        const resolution = resolveEventRegion(event);
+
+        return {
+          ...event,
+          resolvedRegion: resolution.region,
+          regionResolutionSource: resolution.source,
+        };
+      },
+    );
+
+return Response.json({
+  events,
+  pagination: data.page ?? null,
+});
   } catch (error) {
     console.error("Errore caricamento eventi:", error);
 

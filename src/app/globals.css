@@ -653,6 +653,7 @@ input:focus-visible {
   backdrop-filter: blur(8px);
 }
 
+
 .event-card__content {
   display: flex;
   min-height: 245px;
@@ -1180,15 +1181,6 @@ input:focus-visible {
   min-width: 0;
 }
 
-.region-event-list__content time {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
 .region-event-list__content h4 {
   margin: 0;
   font-size: 0.95rem;
@@ -1202,6 +1194,30 @@ input:focus-visible {
   line-height: 1.4;
 }
 
+.region-event-list__metadata {
+  display: flex;
+  margin-bottom: 6px;
+  align-items: center;
+  gap: 5px;
+}
+
+.region-event-list__metadata time {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.region-event-list__separator {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.region-event-list__genre {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
 .region-event-list__item > a {
   display: grid;
   width: 36px;
