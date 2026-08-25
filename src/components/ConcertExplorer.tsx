@@ -585,10 +585,24 @@ export default function ConcertExplorer() {
                                 <td>{getEventGenre(event)}</td>
                                 <td>
                                   <span className="event-table__venue">
-                                    {venue?.name ?? "Luogo non disponibile"}
-                                    {venue?.city?.name
-                                      ? `, ${venue.city.name}`
-                                      : ""}
+                                    {venue?.name ? (
+                                      <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                          [venue.name, venue.city?.name, venue.state?.name]
+                                            .filter(Boolean)
+                                            .join(", ")
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label={`Apri ${venue.name} su Google Maps`}
+                                        className="event-table__venue-link"
+                                      >
+                                        {venue.name}
+                                        {venue.city?.name ? `, ${venue.city.name}` : ""}
+                                      </a>
+                                    ) : (
+                                      "Luogo non disponibile"
+                                    )}
                                   </span>
                                 </td>
                                 <td>

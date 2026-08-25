@@ -466,13 +466,18 @@ input:focus-visible {
 .results-section {
   padding-top: 30px;
 }
-
 .results-disclaimer {
+  position: sticky;
+  top: 16px;
+  z-index: 10;
+
   display: flex;
-  margin-top: 18px;
-  padding: 13px 16px;
   align-items: flex-start;
   gap: 10px;
+
+  margin-top: 18px;
+  padding: 13px 16px;
+
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
   border-radius: 12px;
   background: color-mix(in srgb, var(--accent) 6%, var(--surface));
@@ -481,7 +486,7 @@ input:focus-visible {
 
 .results-disclaimer svg {
   flex: 0 0 auto;
-  margin-top: 1px;
+  margin-top: 3px;
   color: var(--accent);
 }
 
@@ -597,6 +602,22 @@ input:focus-visible {
   color: var(--accent);
 }
 
+.event-table__venue-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.event-table__venue-link:hover {
+  color: var(--accent);
+}
+
+.event-table__venue-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
 .event-card {
   min-width: 0;
   overflow: hidden;
@@ -651,6 +672,10 @@ input:focus-visible {
   font-size: 0.72rem;
   font-weight: 700;
   backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1;
 }
 
 
@@ -694,6 +719,21 @@ input:focus-visible {
   margin-top: 1px;
 }
 
+.event-card__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1;
+}
+
+.event-card__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1;
+}
+
+
 .event-card__link {
   display: inline-flex;
   min-height: 42px;
@@ -712,6 +752,15 @@ input:focus-visible {
 .event-card__link:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.event-card__venue-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.event-card__venue-link:hover {
+  text-decoration: underline;
 }
 
 .pagination {
@@ -976,6 +1025,34 @@ input:focus-visible {
   width: 100%;
   max-width: 540px;
   height: auto;
+}
+
+.map-event__venue {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.map-event__venue svg {
+  flex: 0 0 auto;
+}
+
+.map-event__venue-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.map-event__venue-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.map-event__venue-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
 }
 
 .italy-map__region {
