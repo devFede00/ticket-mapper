@@ -15,7 +15,7 @@ import EventCard from "./EventCard";
 import ThemeToggle from "./ThemeToggle";
 import SearchAutocomplete from "./SearchSuggestions";
 
-import { ExternalLink, Grid3X3, Info, LibraryBig, List, Map, Search } from "lucide-react";
+import { ExternalLink, Grid3X3, Info, LibraryBig, List, Map, Search, TriangleAlert } from "lucide-react";
 interface Filters {
   keyword: string;
   city: string;
@@ -476,7 +476,7 @@ export default function ConcertExplorer() {
         </section>
 
           <aside className="results-disclaimer" aria-label="Nota sui risultati">
-            <Info aria-hidden="true" size={19} strokeWidth={2} />
+            <TriangleAlert aria-hidden="true" size={19} strokeWidth={2} />
                   
             <p>
               Le informazioni mostrate potrebbero differire da quelle pubblicate sulle

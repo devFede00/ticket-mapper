@@ -302,6 +302,24 @@ export default function ItalyEventsMap({
 
           <h2 id="map-title">Eventi per regione</h2>
         </div>
+
+        <p className="map-coverage-note">
+        {events.length}{" "}
+        {events.length === 1
+          ? "evento analizzato"
+          : "eventi analizzati"}
+        : {mappedEventsCount}{" "}
+        {mappedEventsCount === 1
+          ? "associato"
+          : "associati"}{" "}
+        a una regione
+        {unresolvedEvents.length > 0
+          ? `, ${unresolvedEvents.length} con località non determinata`
+          : ""}
+        . La mappa considera al massimo i primi 200
+        risultati corrispondenti ai filtri selezionati.
+      </p>
+
       </div>
 
       <div className="map-layout">
@@ -580,22 +598,7 @@ export default function ItalyEventsMap({
         </aside>
       </div>
 
-      <p className="map-coverage-note">
-        {events.length}{" "}
-        {events.length === 1
-          ? "evento analizzato"
-          : "eventi analizzati"}
-        : {mappedEventsCount}{" "}
-        {mappedEventsCount === 1
-          ? "associato"
-          : "associati"}{" "}
-        a una regione
-        {unresolvedEvents.length > 0
-          ? `, ${unresolvedEvents.length} con località non determinata`
-          : ""}
-        . La mappa considera al massimo i primi 200
-        risultati corrispondenti ai filtri selezionati.
-      </p>
+
     </section>
   );
 }
