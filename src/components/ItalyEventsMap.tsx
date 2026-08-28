@@ -1,7 +1,7 @@
 "use client";
 
 import ItalyMapData from "@svg-maps/italy";
-import { ExternalLink, MapPinOff, Minus, Music, X } from "lucide-react";
+import { ExternalLink, MapPin, MapPinOff, Minus, Music, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { CalendarDays } from "lucide-react";
@@ -302,6 +302,24 @@ export default function ItalyEventsMap({
 
           <h2 id="map-title">Eventi per regione</h2>
         </div>
+
+        <p className="map-coverage-note">
+        {events.length}{" "}
+        {events.length === 1
+          ? "evento analizzato"
+          : "eventi analizzati"}
+        : {mappedEventsCount}{" "}
+        {mappedEventsCount === 1
+          ? "associato"
+          : "associati"}{" "}
+        a una regione
+        {unresolvedEvents.length > 0
+          ? `, ${unresolvedEvents.length} con località non determinata`
+          : ""}
+        . La mappa considera al massimo i primi 200
+        risultati corrispondenti ai filtri selezionati.
+      </p>
+
       </div>
 
       <div className="map-layout">
@@ -516,23 +534,47 @@ export default function ItalyEventsMap({
                           </div>
 
                           <h4>{event.name}</h4>
+                              
+                          <p className="map-event__venue">
+                            <MapPin
+                              aria-hidden="true"
+                              size={12}
+                              strokeWidth={1.8}
+                            />
+                            {venue?.name ? (
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                  [
+                                    venue.name,
+                                    venue.city?.name,
+                                    venue.state?.name,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(", ")
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`Apri ${venue.name} su Google Maps`}
+                                className="map-event__venue-link"
+                              >
+                                {venue.name}
 
-                          <p>
-                            {venue?.name ??
-                              "Luogo non disponibile"}
+                                {venue.city?.name
+                                  ? `, ${venue.city.name}`
+                                  : ""}
 
-                            {venue?.city?.name
-                              ? `, ${venue.city.name}`
-                              : ""}
-
-                            {selection.type ===
-                              "unresolved" &&
-                            venue?.state?.name
-                              ? ` — ${venue.state.name}`
-                              : ""}
+                                {selection.type === "unresolved" &&
+                                venue.state?.name
+                                  ? ` — ${venue.state.name}`
+                                  : ""}
+                              </a>
+                            ) : (
+                              "Luogo non disponibile"
+                            )}
                           </p>
 
-                        </div>
+                          </div>
+              
 
                         <a
                           href={event.url}
@@ -556,22 +598,7 @@ export default function ItalyEventsMap({
         </aside>
       </div>
 
-      <p className="map-coverage-note">
-        {events.length}{" "}
-        {events.length === 1
-          ? "evento analizzato"
-          : "eventi analizzati"}
-        : {mappedEventsCount}{" "}
-        {mappedEventsCount === 1
-          ? "associato"
-          : "associati"}{" "}
-        a una regione
-        {unresolvedEvents.length > 0
-          ? `, ${unresolvedEvents.length} con località non determinata`
-          : ""}
-        . La mappa considera al massimo i primi 200
-        risultati corrispondenti ai filtri selezionati.
-      </p>
+
     </section>
   );
 }
