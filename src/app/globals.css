@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  --site-logo: url("../../public/concerti-italia-logo-dark-transparent.png");
+  --site-logo: url("../../public/ticket-mapper-logo-dark-transparent.png");
   --background: #f4f5f7;
   --surface: #ffffff;
   --surface-secondary: #f8f9fb;
@@ -23,7 +23,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --site-logo: url("../../public/concerti-italia-logo-dark-transparent.png");
+  --site-logo: url("../../public/ticket-mapper-logo-dark-transparent.png");
   --background: #101114;
   --surface: #191b20;
   --surface-secondary: #202329;

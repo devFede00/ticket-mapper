@@ -1,6 +1,6 @@
 # Fonti del progetto
 
-Riferimenti tecnici e fonti utilizzati per lo sviluppo di Concerti Italia — Ticket Mapper.
+Riferimenti tecnici e fonti utilizzati per lo sviluppo di Ticket Mapper.
 
 ## Documentazione
 
