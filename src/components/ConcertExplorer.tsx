@@ -8,6 +8,7 @@ import {
   TicketmasterEvent,
   TicketmasterPage,
 } from "@/types/ticketmaster-dto";
+import { SiGithub } from "react-icons/si";
 
 import ItalyEventsMap from "./ItalyEventsMap";
 
@@ -15,7 +16,7 @@ import EventCard from "./EventCard";
 import ThemeToggle from "./ThemeToggle";
 import SearchAutocomplete from "./SearchSuggestions";
 
-import { ExternalLink, Grid3X3, Info, LibraryBig, List, Map, Search } from "lucide-react";
+import { ExternalLink, Grid3X3, Info, LibraryBig, List, Map, Search, TriangleAlert } from "lucide-react";
 interface Filters {
   keyword: string;
   city: string;
@@ -476,7 +477,7 @@ export default function ConcertExplorer() {
         </section>
 
           <aside className="results-disclaimer" aria-label="Nota sui risultati">
-            <Info aria-hidden="true" size={19} strokeWidth={2} />
+            <TriangleAlert aria-hidden="true" size={19} strokeWidth={2} />
                   
             <p>
               Le informazioni mostrate potrebbero differire da quelle pubblicate sulle
@@ -585,10 +586,24 @@ export default function ConcertExplorer() {
                                 <td>{getEventGenre(event)}</td>
                                 <td>
                                   <span className="event-table__venue">
-                                    {venue?.name ?? "Luogo non disponibile"}
-                                    {venue?.city?.name
-                                      ? `, ${venue.city.name}`
-                                      : ""}
+                                    {venue?.name ? (
+                                      <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                          [venue.name, venue.city?.name, venue.state?.name]
+                                            .filter(Boolean)
+                                            .join(", ")
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label={`Apri ${venue.name} su Google Maps`}
+                                        className="event-table__venue-link"
+                                      >
+                                        {venue.name}
+                                        {venue.city?.name ? `, ${venue.city.name}` : ""}
+                                      </a>
+                                    ) : (
+                                      "Luogo non disponibile"
+                                    )}
                                   </span>
                                 </td>
                                 <td>
@@ -687,6 +702,21 @@ export default function ConcertExplorer() {
           {viewMode === "map" && <ItalyEventsMap filters={appliedFilters} />}
         </section>
       </main>
+      <footer className="site-footer">
+        <p>
+            Ideato e realizzato nel 2026 da
+          <a
+            className="github-link"
+            href="https://github.com/devFede00"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visita il profilo GitHub di devFede00"
+          >
+            <SiGithub aria-hidden="true" size={18} />
+            @devFede00
+          </a>
+        </p>
+      </footer>
     </>
   );
 }
