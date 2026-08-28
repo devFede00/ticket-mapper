@@ -8,6 +8,7 @@ import {
   TicketmasterEvent,
   TicketmasterPage,
 } from "@/types/ticketmaster-dto";
+import { SiGithub } from "react-icons/si";
 
 import ItalyEventsMap from "./ItalyEventsMap";
 
@@ -701,6 +702,21 @@ export default function ConcertExplorer() {
           {viewMode === "map" && <ItalyEventsMap filters={appliedFilters} />}
         </section>
       </main>
+      <footer className="site-footer">
+        <p>
+            Ideato e realizzato nel 2026 da
+          <a
+            className="github-link"
+            href="https://github.com/devFede00"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visita il profilo GitHub di devFede00"
+          >
+            <SiGithub aria-hidden="true" size={18} />
+            @devFede00
+          </a>
+        </p>
+      </footer>
     </>
   );
 }
