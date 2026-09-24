@@ -4,6 +4,8 @@ Applicazione web per cercare e visualizzare concerti ed eventi musicali disponib
 
 Il progetto è stato realizzato per approfondire Next.js, React e TypeScript. Non utilizza database, autenticazione o profili utente.
 
+#### Link: [ticket-mapper-italia.vercel.app](https://ticket-mapper-italia.vercel.app/)
+
 ## Funzionalità
 
 - ricerca per artista o evento con suggerimenti automatici;
