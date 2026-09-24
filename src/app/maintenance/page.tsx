@@ -4,7 +4,7 @@ import { Music2 } from "lucide-react";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Manutenzione | Concerti Italia",
+  title: "Manutenzione | Ticket Mapper",
   description: "Sito in manutenzione",
   robots: {
     index: false,
@@ -48,7 +48,7 @@ export default function MaintenancePage() {
 
       <div style={contentStyle}>
         <Image
-          src="/concerti-italia-logo-dark-transparent.png"
+          src="/ticket-mapper-logo-dark-transparent.png"
           alt="Concerti Italia"
           width={180}
           height={180}

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Concerti Italia",
+  title: "Ticket Mapper",
   description:
     "Scopri concerti ed eventi musicali in Italia.",
 };

@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Music } from "lucide-react";
 import Image from "next/image";
 
 import type {
@@ -75,6 +75,7 @@ export default function EventCard({
 
         {genre && (
           <span className="event-card__genre">
+            <Music aria-hidden="true" size={14} strokeWidth={2} />
             {genre}
           </span>
         )}
@@ -82,13 +83,25 @@ export default function EventCard({
 
       <div className="event-card__content">
         <div className="event-card__metadata">
-          <span>
-            {formatEventDate(
-              event.dates.start.localDate,
-            )}
+
+          <span className="event-card__date">
+            <CalendarDays
+              aria-hidden="true"
+              size={14}
+              strokeWidth={2}
+            />
+
+            {formatEventDate(event.dates.start.localDate)}
           </span>
 
-          {eventTime && <span>Ore {eventTime}</span>}
+           <span className="event-card__time">
+            <Clock
+              aria-hidden="true"
+              size={14}
+              strokeWidth={2}
+            />
+            Ore {eventTime}
+            </span>
         </div>
 
         <h2 className="event-card__title">
@@ -102,13 +115,22 @@ export default function EventCard({
             strokeWidth={1.8}
           />
 
-          <span>
-            {venue?.name ?? "Luogo non disponibile"}
-
-            {venue?.city?.name
-              ? `, ${venue.city.name}`
-              : ""}
-          </span>
+          {venue?.name ? (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                `${venue.name}${venue.city?.name ? `, ${venue.city.name}` : ""}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Apri ${venue.name} su Google Maps`}
+              className="event-card__venue-link"
+            >
+              {venue.name}
+              {venue.city?.name ? `, ${venue.city.name}` : ""}
+            </a>
+          ) : (
+            <span>Luogo non disponibile</span>
+          )}
         </div>
 
         <a
